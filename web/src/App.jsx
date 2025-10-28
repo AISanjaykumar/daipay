@@ -13,6 +13,9 @@ import Home from "./pages/Home.jsx";
 import About from "./pages/About.jsx";
 import Help from "./pages/Help.jsx";
 import Footer from "./components/Footer.jsx";
+import Signup from "./pages/Signup.jsx";
+import Login from "./pages/Login.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 export default function App() {
   const [tab, setTab] = useState("payments");
@@ -157,10 +160,19 @@ export default function App() {
 
       <Routes>
         <Route path="/" element={<Home />} /> {/* Default page */}
-        <Route path="/dashboard" element={<Dashboard />} />{" "}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
         {/* Original tab-based dashboard */}
         <Route path="/about" element={<About />} />
         <Route path="/help" element={<Help />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={<Login />} />
       </Routes>
 
       <Footer />
