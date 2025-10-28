@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function Signup() {
@@ -9,27 +9,27 @@ export default function Signup() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
+    if (user) {
       navigate("/dashboard");
     }
   }, [user]);
 
   const handleSignup = async (e) => {
     e.preventDefault();
-    await axios.post("http://localhost:8080/api/auth/signup", {
+    const data = await axios.post(`${import.meta.env.VITE_API_URL}/signup`, {
       name,
       email,
       password,
     });
-    navigate("/login");
+    setUser(data);
+    navigate("/dashboard");
   };
 
   return (
-    <div className="flex flex-col items-center mt-20">
+    <div className="flex flex-col h-[70dvh] items-center mt-20">
       <h2 className="text-2xl font-bold mb-4">Sign Up</h2>
       <form onSubmit={handleSignup} className="flex flex-col gap-3 w-64">
         <input
@@ -52,6 +52,10 @@ export default function Signup() {
           Sign Up
         </button>
       </form>
+
+      <div>
+        Already account? <Link to="/login">Login</Link>
+      </div>
     </div>
   );
 }

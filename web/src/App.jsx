@@ -16,6 +16,7 @@ import Footer from "./components/Footer.jsx";
 import Signup from "./pages/Signup.jsx";
 import Login from "./pages/Login.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import Navbar from "./components/Navbar.jsx";
 
 export default function App() {
   const [tab, setTab] = useState("payments");
@@ -120,44 +121,7 @@ export default function App() {
   return (
     <Router>
       {/* Simple top nav for public pages */}
-      <nav className="flex justify-between px-5 md:px-20 gap-6 py-4 bg-gray-900 text-white font-medium">
-        <div>
-          {/* logo or branding could go here */}
-          <Link to="/" className="font-bold text-xl">
-            DAIPay™
-          </Link>
-        </div>
-        <div className="space-x-5">
-          <Link to="/" className="hover:text-cyan-400">
-            Home
-          </Link>
-          <Link to="/dashboard" className="hover:text-cyan-400">
-            Dashboard
-          </Link>
-          <Link to="/about" className="hover:text-cyan-400">
-            About
-          </Link>
-          <Link to="/help" className="hover:text-cyan-400">
-            Help
-          </Link>
-        </div>
-        <div className="space-x-4">
-          {/* login/signup here */}
-          <Link
-            to="/login"
-            className="hover:text-cyan-400 border-b border-transparent hover:border-cyan-400 "
-          >
-            Login
-          </Link>
-          <Link
-            to="/signup"
-            className="hover:text-cyan-400 border-b border-transparent hover:border-cyan-400 "
-          >
-            Sign Up
-          </Link>
-        </div>
-      </nav>
-
+      <Navbar />
       <Routes>
         <Route path="/" element={<Home />} /> {/* Default page */}
         <Route

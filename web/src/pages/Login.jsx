@@ -1,33 +1,29 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const { user, setUser } = useAuth();
 
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
+    if (user) {
       navigate("/dashboard");
     }
-  }, [user]);
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    const { data } = await axios.post("http://localhost:8080/v1/auth/login", {
+    const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/login`, {
       email,
       password,
     });
-    console.log(data);
-
     setUser(data.user);
-
-    localStorage.setItem("token", data.token);
 
     navigate("/dashboard");
   };
@@ -38,12 +34,12 @@ export default function Login() {
       token,
     });
     console.log(data);
-    localStorage.setItem("token", data.token);
+
     navigate("/dashboard");
   };
 
   return (
-    <div className="flex flex-col items-center mt-20">
+    <div className="flex flex-col h-[70dvh] items-center mt-20">
       <h2 className="text-2xl font-bold mb-4">Login</h2>
       <form onSubmit={handleLogin} className="flex flex-col gap-3 w-64">
         <input
@@ -68,6 +64,10 @@ export default function Login() {
           onError={() => console.log("Google login failed")}
         />
       </div> */}
+
+      <div>
+        Already account? <Link to="/signup">Sign up</Link>
+      </div>
     </div>
   );
 }
