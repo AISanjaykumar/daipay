@@ -12,12 +12,11 @@ export default function Navbar() {
         </Link>
       </div>
       <div className="space-x-5">
-        <Link to="/" className="hover:text-cyan-400">
-          Home
-        </Link>
-        <Link to="/dashboard" className="hover:text-cyan-400">
-          Dashboard
-        </Link>
+        {user && (
+          <Link to="/dashboard" className="hover:text-cyan-400">
+            Dashboard
+          </Link>
+        )}
         <Link to="/about" className="hover:text-cyan-400">
           About
         </Link>
