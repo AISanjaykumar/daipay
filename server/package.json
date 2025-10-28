@@ -1,0 +1,19 @@
+{
+  "name": "daipay-api",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch ./src/server.js",
+    "start": "node ./src/server.js",
+    "seed": "node ./scripts/seed.js"
+  },
+  "dependencies": {
+    "bs58": "^5.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "json-stable-stringify": "^1.0.2",
+    "js-sha3": "^0.9.3",
+    "mongoose": "^8.6.4",
+    "tweetnacl": "^1.0.3"
+  }
+}
