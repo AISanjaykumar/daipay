@@ -1,21 +1,37 @@
+import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { useState } from "react";
-import ProfileMenu from "./UserProfile";
+import ProfileModal from "./ProfileModal";
 
 export default function Navbar() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [activeTab, setActiveTab] = useState("profile");
+
+  // Close dropdown when clicked outside
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setUserMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
-    <nav className="flex justify-between px-5 md:px-20 gap-6 py-4 bg-gray-900 text-white font-medium relative">
-      <div>
-        <Link to="/" className="font-bold text-xl">
-          DAIPay™
-        </Link>
-      </div>
+    <nav className="flex justify-between items-center px-5 md:px-20 py-4 bg-gray-900 text-white font-medium relative">
+      {/* Logo */}
+      <Link to="/" className="font-bold text-xl">
+        DAIPay™
+      </Link>
 
-      <div className="space-x-5">
+      {/* Desktop Menu */}
+      <div className="hidden md:flex gap-6">
         {user && (
           <Link to="/dashboard" className="hover:text-cyan-400">
             Dashboard
@@ -29,38 +45,117 @@ export default function Navbar() {
         </Link>
       </div>
 
-      <div className="relative flex items-center space-x-3">
+      {/* Mobile Menu */}
+      <div className="md:hidden">
+        <button onClick={() => setShowMenu(!showMenu)} className="user-avatar">
+          ☰
+        </button>
+        {showMenu && (
+          <div className="absolute right-4 top-16 bg-gray-800 p-3 rounded-lg space-y-2 usermenu">
+            {user ? (
+              <>
+                <button
+                  onClick={() => {
+                    setShowProfile(true);
+                    setShowMenu(false);
+                  }}
+                  className="block w-full text-left hover:text-cyan-400"
+                >
+                  Profile
+                </button>
+                <button
+                  onClick={() => {
+                    setShowProfile(true);
+                    setShowMenu(false);
+                  }}
+                  className="block w-full text-left hover:text-cyan-400"
+                >
+                  Settings
+                </button>
+                <button
+                  onClick={logout}
+                  className="block w-full text-left hover:text-cyan-400"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <a href="/login" className="block hover:text-cyan-400">
+                Login
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Desktop user menu */}
+      <div className="hidden md:block relative">
         {user ? (
-          <button
-            className="flex items-center gap-2 hover:text-cyan-400"
-            onClick={() => setMenuOpen((prev) => !prev)}
-          >
+          <div className="relative">
             <img
               src={user?.photoURL || "/default-avatar.png"}
-              alt="Profile"
-              className="w-8 h-8 rounded-full border border-cyan-400 object-cover"
+              alt="avatar"
+              className="w-10 h-10 rounded-full border-2 border-cyan-500 cursor-pointer user-avatar"
+              onClick={() => setShowMenu(!showMenu)}
             />
-            <span>{user.name?.split(" ")[0]}</span>
-          </button>
-        ) : (
-          <>
-            <Link
-              to="/login"
-              className="hover:text-cyan-400 border-b border-transparent hover:border-cyan-400 "
-            >
-              Login
-            </Link>
-            <Link
-              to="/signup"
-              className="hover:text-cyan-400 border-b border-transparent hover:border-cyan-400 "
-            >
-              Sign Up
-            </Link>
-          </>
-        )}
 
-        {menuOpen && <ProfileMenu onClose={() => setMenuOpen(false)} />}
+            {showMenu && (
+              <div className="absolute right-0 mt-2 bg-gray-800 rounded-lg shadow-lg p-2 usermenu">
+                <div className="px-4 py-3 border-b border-gray-700">
+                  <p className="font-semibold truncate">{user?.name}</p>
+                  <p className="text-sm text-gray-400 truncate">
+                    {user?.email}
+                  </p>
+                </div>
+                <ul className="flex flex-col">
+                  <button
+                    onClick={() => {
+                      setShowProfile(true);
+                      setShowMenu(false);
+                    }}
+                    className="text-left px-4 py-2 hover:bg-gray-700 transition-colors"
+                  >
+                    Profile
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setShowProfile(true);
+                      setShowMenu(false);
+                    }}
+                    className="text-left px-4 py-2 hover:bg-gray-700 transition-colors"
+                  >
+                    Settings
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      logout();
+                      setShowModal(false);
+                      if (onCloseMenu) onCloseMenu();
+                    }}
+                    className="text-left px-4 py-2 hover:bg-gray-700 transition-colors text-red-400"
+                  >
+                    Logout
+                  </button>
+                </ul>
+              </div>
+            )}
+          </div>
+        ) : (
+          <a href="/login" className="hover:text-cyan-400">
+            Login
+          </a>
+        )}
       </div>
+
+      {showProfile && (
+        <ProfileModal
+          onClose={() => setShowProfile(false)}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
+      )}
     </nav>
   );
 }
