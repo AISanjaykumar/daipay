@@ -13,6 +13,10 @@ const userSchema = new mongoose.Schema({
     wallet_secret: String,
   },
   googleId: String,
+  wallet_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Wallet",
+  },
 });
 
 export default mongoose.model("User", userSchema);

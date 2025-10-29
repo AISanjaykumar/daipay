@@ -32,6 +32,9 @@ export default function Navbar() {
 
       {/* Desktop Menu */}
       <div className="hidden md:flex gap-6">
+        <Link to="/" className="hover:text-cyan-400">
+          Home
+        </Link>
         {user && (
           <Link to="/dashboard" className="hover:text-cyan-400">
             Dashboard
@@ -143,9 +146,20 @@ export default function Navbar() {
             )}
           </div>
         ) : (
-          <a href="/login" className="hover:text-cyan-400">
-            Login
-          </a>
+          <div className="flex gap-4">
+            <Link
+              to="/login"
+              className="text-cyan-400 border px-3 py-1 rounded-md border-cyan-500"
+            >
+              Login
+            </Link>
+            <Link
+              to="/signup"
+              className="hover:text-cyan-400 border px-3 py-1 rounded-md border-white-500"
+            >
+              Sign Up
+            </Link>
+          </div>
         )}
       </div>
 

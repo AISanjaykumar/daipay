@@ -3,11 +3,23 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import axios from "axios";
 import User from "../db/models/User.js";
+import { createWallet, credit } from "../services/wallet.service.js";
+import { genKeypair } from "../crypto/ed25519.js";
 
 const r = Router();
 const JWT_SECRET = "secretkey";
 
-// Signup
+// 🧠 Utility to issue JWT and sanitize user
+function issueToken(user) {
+  const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, {
+    expiresIn: "7d",
+  });
+  const userObject = user.toObject();
+  delete userObject.password;
+  return { token, user: userObject };
+}
+
+// 📝 SIGNUP — create wallet automatically
 r.post("/signup", async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -15,43 +27,60 @@ r.post("/signup", async (req, res) => {
     if (exist) return res.status(400).json({ message: "Email already exists" });
 
     const hash = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, email, password: hash });
-    res.json({ message: "Signup successful" });
+
+    // 1️⃣ generate wallet keypair and create wallet
+    const kp = genKeypair();
+    const wallet = await createWallet(kp.pubkey, `${name}'s Wallet`);
+
+    // 2️⃣ give initial faucet credit (for testing/demo)
+    await credit(wallet.wallet_id, 1_000_000);
+
+    // 3️⃣ create user and link wallet
+    const user = await User.create({
+      name,
+      email,
+      password: hash,
+      wallet_id: wallet._id,
+    });
+
+    const { token, user: safeUser } = issueToken(user);
+    res.json({
+      message: "Signup successful",
+      token,
+      user: safeUser,
+      wallet: {
+        wallet_id: wallet.wallet_id,
+        pubkey: wallet.pubkey,
+        balance_micros: wallet.balance_micros,
+      },
+    });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 });
 
-// Login
+// 🔑 LOGIN (no wallet creation, just auth)
 r.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).populate(
+      "wallet_id",
+      "wallet_id pubkey balance_micros"
+    );
     if (!user) return res.status(400).json({ message: "User not found" });
 
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(400).json({ message: "Invalid password" });
 
-    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, {
-      expiresIn: "7d",
-    });
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
-
-    const userObject = user.toObject();
-    delete userObject.password;
-    res.json({ message: "Login successful", user: userObject });
+    const { token, user: safeUser } = issueToken(user);
+    res.json({ token, user: safeUser });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// Google Auth
+// 🪪 GOOGLE AUTH — also create wallet if new user
 r.post("/google", async (req, res) => {
   const { token } = req.body;
   try {
@@ -60,20 +89,31 @@ r.post("/google", async (req, res) => {
     );
     const { email, name, sub } = googleUser.data;
 
-    let user = await User.findOne({ email });
-    if (!user)
+    let user = await User.findOne({ email }).populate(
+      "wallet_id",
+      "wallet_id pubkey balance_micros"
+    );
+
+    if (!user) {
+      const kp = genKeypair();
+      const wallet = await createWallet(kp.pubkey, `${name}'s Wallet`);
+      await credit(wallet.wallet_id, 1_000_000);
+
       user = await User.create({
         name,
         email,
         provider: "google",
         googleId: sub,
+        wallet_id: wallet._id,
       });
+    }
 
     const jwtToken = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, {
       expiresIn: "7d",
     });
     res.json({ token: jwtToken, user });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Google auth failed" });
   }
 });
@@ -93,5 +133,11 @@ r.get("/me", async (req, res) => {
     res.status(401).json({ message: "Invalid or expired token" });
   }
 });
+
+r.post("/logout", (req, res) => {
+  res.clearCookie("token");
+  res.json({ message: "Logged out" });
+});
+ 
 
 export default r;

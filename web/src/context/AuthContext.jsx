@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
 
   // ✅ Logout (clears cookie)
   const logout = async () => {
-    await axios.post("/auth/logout");
+    await axios.post(`${import.meta.env.VITE_API_BASE}/auth/logout`);
     setUser(null);
   };
 

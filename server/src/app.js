@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import payments from "./routes/payments.routes.js";
 import wallets from "./routes/wallets.routes.js";
+import transactions from "./routes/transactions.route.js";
 import blocks from "./routes/blocks.routes.js";
 import escrows from "./routes/escrows.routes.js";
 import anchors from "./routes/anchors.routes.js";
@@ -22,6 +23,7 @@ app.use(express.json({ limit: "2mb" }));
 app.use(cookieParser());
 
 app.use("/v1/wallets", wallets);
+app.use("/v1/transactions", transactions);
 app.use("/v1/payments", payments);
 app.use("/v1/blocks", blocks);
 app.use("/v1/escrows", escrows);
