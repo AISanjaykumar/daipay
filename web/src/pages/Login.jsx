@@ -37,7 +37,7 @@ export default function Login() {
       setLoading(true);
       const payloadEmail = email.trim().toLowerCase();
       const { data } = await axios.post(
-        `${import.meta.env.VITE_API_URL}/auth/login`,
+        `${import.meta.env.VITE_API_BASE}/auth/login`,
         {
           email: payloadEmail,
           password,

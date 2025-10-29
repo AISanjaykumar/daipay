@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
   // Google login
   const googleLogin = async (token) => {
     const { data } = await axios.post(
-      `${import.meta.env.VITE_API_URL}/google`,
+      `${import.meta.env.VITE_API_BASE}/google`,
       {
         token,
       }

@@ -56,7 +56,7 @@ export default function Signup() {
       const payloadEmail = email.trim().toLowerCase();
 
       const { data } = await axios.post(
-        `${import.meta.env.VITE_API_URL}/auth/signup`,
+        `${import.meta.env.VITE_API_BASE}/auth/signup`,
         {
           name,
           email: payloadEmail,
