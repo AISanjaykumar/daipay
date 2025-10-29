@@ -35,9 +35,17 @@ r.post("/login", async (req, res) => {
     const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, {
       expiresIn: "7d",
     });
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
     const userObject = user.toObject();
     delete userObject.password;
-    res.json({ token, user: userObject });
+    res.json({ message: "Login successful", user: userObject });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -67,6 +75,22 @@ r.post("/google", async (req, res) => {
     res.json({ token: jwtToken, user });
   } catch (err) {
     res.status(500).json({ message: "Google auth failed" });
+  }
+});
+
+// Auto refresh route
+r.get("/me", async (req, res) => {
+  try {
+    const token = req.cookies.token;
+    if (!token) return res.status(401).json({ message: "Not authenticated" });
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = await User.findById(decoded.id).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json({ user });
+  } catch (err) {
+    res.status(401).json({ message: "Invalid or expired token" });
   }
 });
 
