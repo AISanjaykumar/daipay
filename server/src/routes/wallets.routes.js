@@ -6,6 +6,8 @@ import {
   credit,
 } from "../services/wallet.service.js";
 import { genKeypair } from "../crypto/ed25519.js";
+import User from "../db/models/User.js";
+import mongoose from "mongoose";
 
 const r = Router();
 
@@ -17,16 +19,33 @@ r.get("/", async (_req, res) => {
 
 // create wallet (server generates keypair for demo)
 r.post("/", async (req, res) => {
-  const { label } = req.body || {};
-  const kp = genKeypair();
-  const w = await createWallet(kp.pubkey, label);
-  // faucet for dev
-  await credit(w.wallet_id, 1_000_000); // 1 DAI for testing
+  const { label, type, userId } = req.body || {};
+
+  console.log("type", type);
+
+  if (type === "create") {
+    const kp = genKeypair();
+    const w = await createWallet(kp.pubkey, label);
+    console.log("user id", userId);
+    console.log("kp", kp);
+
+    await credit(w.wallet_id, 0);
+    await User.findByIdAndUpdate(
+      { _id: new mongoose.Types.ObjectId(userId) },
+      {
+        $set: {
+          "wallet.active": true,
+          "wallet.wallet_id": w.wallet_id,
+          "wallet.wallet_pubkey": w.pubkey,
+          "wallet.wallet_secret": kp.secret,
+        },
+      }
+    );
+    // TODO: add feature of send secret key to user email
+  }
+
   res.json({
-    wallet_id: w.wallet_id,
-    pubkey: w.pubkey,
-    secret: kp.secret,
-    balance_micros: 1_000_000,
+    message: "Wallet created",
   });
 });
 

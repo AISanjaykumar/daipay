@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
@@ -56,7 +56,6 @@ export default function Login() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] bg-gray-50">
-      <Toaster position="top-center" />
       <div className="bg-white p-8 rounded-2xl shadow-md w-80">
         <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
           Welcome Back 👋
