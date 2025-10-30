@@ -95,7 +95,7 @@ r.post("/signup", async (req, res) => {
                   <td style="padding:6px 10px;">
                     <div style="font-size:13px;color:#64748b;margin-bottom:6px;">Wallet ID</div>
                     <div style="word-break:break-all;font-family:monospace;font-size:13px;color:#0f172a;">${
-                      wallet._id
+                      wallet.wallet_id
                     }</div>
                   </td>
                 </tr>
