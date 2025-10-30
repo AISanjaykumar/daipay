@@ -40,6 +40,21 @@ export default function Payments() {
   const [otpVerified, setOtpVerified] = useState(false);
 
   async function handleSubmitClick() {
+    if (to.trim() === "" || fromSecret.trim() === "") {
+      toast.error("Please fill in all required fields ❌");
+      return;
+    }
+
+    if (fromSecret.trim().length !== 88) {
+      toast.error("Invalid Secret Key length ❌");
+      return;
+    }
+
+    if (to.trim().length !== 128) {
+      toast.error("Invalid Wallet ID length ❌");
+      return;
+    }
+
     try {
       if (sendingOtp) return;
       setSendingOtp(true);
@@ -51,8 +66,9 @@ export default function Payments() {
       });
 
       toast.success("OTP sent to your email 📩");
-      setResendTimer(300); // 5 minutes
-    } catch {
+      setResendTimer(300); // 5 minutes timer
+    } catch (error) {
+      console.error(error);
       toast.error("Failed to send OTP ❌");
     } finally {
       setSendingOtp(false);
