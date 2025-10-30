@@ -85,6 +85,10 @@ r.post("/login", async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
+    let wallet = safeUser.wallet_id;
+    delete safeUser.wallet_id;
+    safeUser.wallet = wallet;
+
     res.json({ user: safeUser });
   } catch (err) {
     res.status(500).json({ message: err.message });

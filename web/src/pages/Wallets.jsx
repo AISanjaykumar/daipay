@@ -1,214 +1,213 @@
-import toast from "react-hot-toast";
-import { FaPlus } from "react-icons/fa6";
 import { useEffect, useState } from "react";
-
+import { motion, AnimatePresence } from "framer-motion";
+import { FaArrowDown, FaArrowUp, FaCopy } from "react-icons/fa6";
+import toast from "react-hot-toast";
 import { api } from "../api/client.js";
 import { useAuth } from "../context/AuthContext.jsx";
 
 export default function Wallets() {
-  const { user } = useAuth(); // get user from context
-  const [wallets, setWallets] = useState([]);
-  const [loading, setLoading] = useState(false); // wallet creation
-  const [fundLoading, setFundLoading] = useState(false); // add funds
-  const [showFundModal, setShowFundModal] = useState(false);
-  const [amount, setAmount] = useState("");
+  const { user } = useAuth();
+  const [transactions, setTransactions] = useState([]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
 
-  async function load() {
-    const data = await api("/wallets");
-    setWallets(data.items || []);
-  }
+  const limit = 10;
+  const wallet = user?.wallet;
 
-  async function create() {
+  // 🧩 Load transactions
+  async function loadTransactions() {
+    if (!wallet?.wallet_id) return;
     try {
       setLoading(true);
-      const out = await api("/wallets", {
-        method: "POST",
-        body: JSON.stringify({ type: "create", userId: user._id }),
-      });
-      toast.success("✅ Wallet created.");
-      await load();
+      const res = await api(`/transactions/${wallet.wallet_id}?page=${page}&limit=${limit}`);
+      if (res.success) {
+        setTransactions(res.transactions || []);
+        setTotal(res.total || 0);
+      } else toast.error("Failed to load transactions");
     } catch (err) {
-      console.error("Error creating wallet:", err);
-      toast.error("Failed to create wallet. Please try again.");
+      console.error(err);
+      toast.error("Error loading transactions");
     } finally {
       setLoading(false);
     }
   }
 
-  async function addFunds() {
-    if (!amount || isNaN(amount) || Number(amount) <= 0) {
-      toast.error("Please enter a valid amount");
-      return;
-    }
-    try {
-      setFundLoading(true);
-      const res = await api("/wallets", {
-        method: "POST",
-        body: JSON.stringify({
-          userId: user._id,
-          amount: Number(amount),
-          type: "credit",
-        }),
-      });
-
-      if (res.success) {
-        toast.success("💸 Funds added successfully!");
-        setShowFundModal(false);
-        setAmount("");
-        await load();
-      } else {
-        toast.error("Failed to add funds.");
-      }
-    } catch (err) {
-      console.error("Add funds error:", err);
-      toast.error("Something went wrong while adding funds.");
-    } finally {
-      setFundLoading(false);
-    }
-  }
-
   useEffect(() => {
-    if (user?.wallet?.active) load();
-  }, [user]);
+    loadTransactions();
+  }, [user, page]);
 
-  if (!user) {
+  // 🔒 Helpers
+  const maskKey = (key = "") => (key.length > 12 ? `${key.slice(0, 6)}***${key.slice(-4)}` : key);
+  const copyToClipboard = (text, label) => {
+    navigator.clipboard.writeText(text);
+    toast.success(`${label} copied!`);
+  };
+
+  if (!user)
     return (
-      <div className="min-h-screen flex items-center justify-center text-gray-700 text-lg">
+      <div className="min-h-screen flex items-center justify-center text-gray-600 text-lg">
         Please log in to access your wallet.
       </div>
     );
-  }
 
   return (
-    <div className="min-h-[70dvh] bg-gradient-to-br p-6">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
-        💰 Wallets
-      </h2>
-
-      {!user.wallet.active ? (
-        // Wallet inactive → show create button
-        <div className="flex flex-col mx-auto items-center space-y-4 bg-white shadow-lg rounded-xl p-8 max-w-md w-full">
-          <h3 className="text-lg font-medium text-gray-800">
-            You don’t have an active wallet yet.
-          </h3>
-          <p className="text-gray-500 text-sm text-center">
-            Create your first wallet to start transactions.
+    <div className="min-h-[80dvh] bg-gradient-to-br from-white via-indigo-50 to-white p-6 sm:p-10">
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        {/* Wallet Header */}
+        <div className="mb-6 text-center">
+          <h2 className="text-2xl font-semibold text-gray-800 flex justify-center items-center gap-2">
+            🪙 My DAIpay Wallet
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Manage your balance and view all recent transactions.
           </p>
-
-          <div className="w-full space-y-2">
-            <button
-              onClick={create}
-              disabled={loading}
-              className={`w-full py-2 font-semibold rounded-lg transition-all hover:cursor-pointer ${
-                loading
-                  ? "bg-gray-400 text-gray-200 cursor-not-allowed"
-                  : "bg-indigo-600 text-white hover:bg-indigo-700"
-              }`}
-            >
-              {loading
-                ? "⏳ Creating Wallet..."
-                : "Create Wallet (with Faucet)"}
-            </button>
-          </div>
         </div>
-      ) : (
-        // Wallet active → show transactions list
-        <div className="w-full mx-auto max-w-3xl bg-white shadow-xl rounded-xl p-8 relative">
-          <div className="py-4 flex justify-between items-center border-b-2 mb-4">
-            <div>
-              <span>Balance: </span>
-              <span className="font-mono font-bold text-lg">
-                {user.wallet.amount} μDAI
-              </span>
-            </div>
-            <div>
+
+        {/* Wallet Info */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="grid grid-cols-1 bg-white p-5 rounded-xl drop-shadow-lg sm:grid-cols-2 gap-5 mb-8"
+        >
+          {/* Wallet ID */}
+          <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4">
+            <h4 className="text-gray-600 text-sm font-semibold mb-2">🆔 Wallet ID</h4>
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-gray-800">{maskKey(wallet.wallet_id)}</span>
               <button
-                onClick={() => {
-                  toast("This feature is not available at this moment.");
-                  // setShowFundModal(true);
-                }}
-                className="flex gap-2 items-center hover:bg-indigo-100 px-3 py-1 rounded-lg border border-indigo-200 text-indigo-600 font-semibold transition"
+                onClick={() => copyToClipboard(wallet.wallet_id, "Wallet ID")}
+                className="p-1 rounded hover:bg-indigo-100"
               >
-                <FaPlus />
-                <span>Add Funds</span>
+                <FaCopy className="text-indigo-600 text-sm" />
               </button>
             </div>
           </div>
 
-          <h3 className="text-xl font-semibold text-gray-800 mb-4">History</h3>
-          <div
-            className="space-y-4 max-h-[400px] overflow-y-auto px-2"
-            style={{
-              scrollbarWidth: "none",
-              msOverflowStyle: "none",
-            }}
-          >
-            {wallets.length === 0 && (
-              <p className="text-gray-600">No wallets found.</p>
-            )}
-
-            {wallets.map((w) => (
-              <div
-                key={w.wallet_id}
-                className="border border-gray-200 rounded-lg p-4 bg-gray-50 shadow-sm"
+          {/* Public Key */}
+          <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4">
+            <h4 className="text-gray-600 text-sm font-semibold mb-2">🔑 Public Key</h4>
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-gray-800">{maskKey(wallet.pubkey)}</span>
+              <button
+                onClick={() => copyToClipboard(wallet.pubkey, "Public Key")}
+                className="p-1 rounded hover:bg-indigo-100"
               >
-                <div>
-                  <b>🪪 Wallet ID:</b>
-                  <p className="break-all text-sm">{w.wallet_id}</p>
-                </div>
-                <div>
-                  <b>🔑 Public Key:</b>
-                  <p className="break-all text-sm">{w.pubkey}</p>
-                </div>
-                <div>
-                  <b>💵 Balance:</b> {w.balance_micros} μDAI
-                </div>
-              </div>
-            ))}
+                <FaCopy className="text-indigo-600 text-sm" />
+              </button>
+            </div>
           </div>
 
-          {/* 💸 Add Funds Modal */}
-          {showFundModal && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black/30 bg-opacity-40 z-50">
-              <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-sm">
-                <h3 className="text-lg font-semibold mb-4 text-gray-800">
-                  Add Funds
-                </h3>
+          {/* Balance */}
+          <div className="bg-green-50 border border-green-100 rounded-xl p-4 sm:col-span-2">
+            <h4 className="text-gray-600 text-sm text-center font-semibold mb-2">💰 Balance</h4>
+            <motion.div
+              key={wallet.balance_micros}
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.3 }}
+              className="flex flex-col items-center justify-center"
+            >
+              <p className="text-3xl font-bold text-green-600">
+                {(wallet.balance_micros / 1_000_000).toFixed(3)} DAI
+              </p>
+              <p className="text-xs text-gray-600 mt-1">
+                ({wallet.balance_micros} μDAI)
+              </p>
+            </motion.div>
+          </div>
+        </motion.div>
 
-                <input
-                  type="number"
-                  min="1"
-                  placeholder="Enter amount (μDAI)"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="w-full border rounded-lg px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
+        {/* Transactions Section */}
+        <div className="border-t border-gray-200 pt-6 bg-none px-1">
+          <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            📜 Transaction History
+          </h3>
 
-                <div className="flex justify-end gap-2">
-                  <button
-                    onClick={() => setShowFundModal(false)}
-                    className="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100"
-                    disabled={fundLoading}
+          <div
+            className="max-h-[400px] flex flex-col py-2 overflow-y-auto space-y-3"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            {loading ? (
+              <p className="text-gray-500 text-center py-6 animate-pulse">Loading...</p>
+            ) : transactions.length === 0 ? (
+              <p className="text-gray-500 text-center py-6">No transactions yet.</p>
+            ) : (
+              <AnimatePresence>
+                {transactions.map((tx) => (
+                  <motion.div
+                    key={tx._id}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.25 }}
+                    className="border border-gray-200 bg-white rounded-lg p-4 drop-shadow-md flex flex-col sm:flex-row sm:justify-between sm:items-center"
                   >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={addFunds}
-                    disabled={fundLoading}
-                    className={`px-4 py-2 rounded-lg text-white font-semibold ${
-                      fundLoading
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-indigo-600 hover:bg-indigo-700"
-                    }`}
-                  >
-                    {fundLoading ? "⏳ Adding..." : "Add Funds"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+                    <div className="flex items-center gap-3 mb-2 sm:mb-0">
+                      {tx.type === "credit" ? (
+                        <FaArrowDown className="text-green-500 text-lg" />
+                      ) : (
+                        <FaArrowUp className="text-red-500 text-lg" />
+                      )}
+                      <div>
+                        <p className="font-medium text-gray-800 capitalize">{tx.type}</p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(tx.updatedAt).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div
+                      className={`font-semibold text-right ${
+                        tx.type === "credit" ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
+                      {tx.type === "credit" ? "+" : "-"}
+                      {(tx.amount_micros / 1_000_000).toFixed(3)} DAI
+                      <div className="text-xs text-gray-500">
+                        ({tx.amount_micros.toLocaleString()} μDAI)
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            )}
+          </div>
         </div>
-      )}
+
+        {/* Pagination */}
+        {transactions.length > 0 && (
+          <motion.div
+            className="flex justify-center mt-6 gap-3 flex-wrap"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-4 py-2 border rounded-lg text-sm font-medium hover:bg-gray-100 disabled:opacity-50"
+            >
+              Prev
+            </button>
+            <span className="text-sm text-gray-600 flex items-center">
+              Page {page} / {Math.ceil(total / limit) || 1}
+            </span>
+            <button
+              onClick={() =>
+                setPage((p) => (p < Math.ceil(total / limit) ? p + 1 : p))
+              }
+              disabled={page >= Math.ceil(total / limit)}
+              className="px-4 py-2 border rounded-lg text-sm font-medium hover:bg-gray-100 disabled:opacity-50"
+            >
+              Next
+            </button>
+          </motion.div>
+        )}
+      </motion.div>
     </div>
   );
 }

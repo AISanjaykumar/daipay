@@ -95,12 +95,20 @@ export default function Navbar() {
       <div className="hidden md:block relative">
         {user ? (
           <div className="relative">
-            <img
+            {/* <img
               src={user?.photoURL || "/default-avatar.png"}
               alt="avatar"
               className="w-10 h-10 rounded-full border-2 border-cyan-500 cursor-pointer user-avatar"
               onClick={() => setShowMenu(!showMenu)}
-            />
+            /> */}
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => setShowMenu(!showMenu)}>
+              <h1>{user?.name}</h1>
+              <button
+                onClick={() => setShowMenu(!showMenu)}
+                className="w-10 h-10 rounded-full border-2 border-cyan-500 cursor-pointer user-avatar flex items-center justify-center bg-gray-700" >
+                {user?.name?.charAt(0).toUpperCase()}
+              </button>
+            </div>
 
             {showMenu && (
               <div className="absolute right-0 mt-2 bg-gray-800 rounded-lg shadow-lg p-2 usermenu">
