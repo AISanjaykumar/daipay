@@ -2,9 +2,15 @@ import Wallet from "../db/models/Wallet.js";
 import { h512 } from "../crypto/hash.js";
 import { recordTransaction } from "./transaction.service.js";
 
-export async function createWallet(pubkey, label) {
+export async function createWallet(pubkey, label, secretkey) {
   const wallet_id = h512(pubkey);
-  return Wallet.create({ wallet_id, pubkey, label, balance_micros: 0 });
+  return Wallet.create({
+    wallet_id,
+    pubkey,
+    label,
+    secretkey,
+    balance_micros: 0,
+  });
 }
 
 export async function getBalance(wallet_id) {
@@ -13,7 +19,11 @@ export async function getBalance(wallet_id) {
 }
 
 export async function credit(wallet_id, amount, note = "Credit to wallet") {
-  await Wallet.updateOne({ wallet_id }, { $inc: { balance_micros: amount } }, { upsert: true });
+  await Wallet.updateOne(
+    { wallet_id },
+    { $inc: { balance_micros: amount } },
+    { upsert: true }
+  );
   await recordTransaction({
     type: "credit",
     to_wallet: wallet_id,
@@ -40,7 +50,8 @@ export async function debit(wallet_id, amount, note = "Debit from wallet") {
 // 🔄 Transfer between wallets
 export async function transfer(from_wallet, to_wallet, amount) {
   const sender = await Wallet.findOne({ wallet_id: from_wallet });
-  if (!sender || sender.balance_micros < amount) throw new Error("insufficient_balance");
+  if (!sender || sender.balance_micros < amount)
+    throw new Error("insufficient_balance");
 
   sender.balance_micros -= amount;
   await sender.save();

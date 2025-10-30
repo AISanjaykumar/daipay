@@ -7,9 +7,12 @@ import blocks from "./routes/blocks.routes.js";
 import escrows from "./routes/escrows.routes.js";
 import anchors from "./routes/anchors.routes.js";
 import auth from "./routes/auth.routes.js";
+import mail from "./routes/mail.routes.js";
 import { errorHandler } from "./middleware/error.js";
 import { sealBlock } from "./services/ledger.service.js";
 import cookieParser from "cookie-parser";
+import dotenv from "dotenv";
+dotenv.config();
 
 const app = express();
 app.use(
@@ -29,6 +32,7 @@ app.use("/v1/blocks", blocks);
 app.use("/v1/escrows", escrows);
 app.use("/v1/anchors", anchors);
 app.use("/v1/auth", auth);
+app.use("/v1/mail", mail);
 
 app.use(errorHandler);
 

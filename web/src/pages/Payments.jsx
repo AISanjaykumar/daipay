@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "../api/client.js";
 import nacl from "tweetnacl";
 import bs58 from "bs58";
+import toast from "react-hot-toast";
+import OtpInput from "../components/OTP.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
 
 function canonical(obj) {
   return JSON.stringify(
@@ -15,11 +18,13 @@ function canonical(obj) {
 }
 
 export default function Payments() {
+  const { user } = useAuth();
+
+  const [to, setTo] = useState("");
+  const [from, setFrom] = useState("");
+  const [amount, setAmount] = useState(100000);
   const [fromPub, setFromPub] = useState("");
   const [fromSecret, setFromSecret] = useState("");
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
-  const [amount, setAmount] = useState(100000);
   const [nonce, setNonce] = useState(
     "n-" + Math.random().toString(36).slice(2)
   );
@@ -27,13 +32,94 @@ export default function Payments() {
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function submit() {
+  const [otp, setOtp] = useState("");
+  const [otpOpen, setOtpOpen] = useState(false);
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);
+  const [otpVerified, setOtpVerified] = useState(false);
+
+  async function handleSubmitClick() {
+    try {
+      if (sendingOtp) return;
+      setSendingOtp(true);
+      setOtpOpen(true);
+
+      await api("/mail/send-otp", {
+        method: "POST",
+        body: JSON.stringify({ email: user.email }),
+      });
+
+      toast.success("OTP sent to your email 📩");
+      setResendTimer(300); // 5 minutes
+    } catch {
+      toast.error("Failed to send OTP ❌");
+    } finally {
+      setSendingOtp(false);
+    }
+  }
+
+  const handleResend = async () => {
+    if (resendTimer > 0 || sendingOtp) return;
+    try {
+      setSendingOtp(true);
+      setOtp("");
+      setOtpVerified(false);
+
+      await api("/mail/send-otp", {
+        method: "POST",
+        body: JSON.stringify({ email: user.email }),
+      });
+
+      toast.success("New OTP sent 🔁");
+      setResendTimer(300); // reset 5-min timer
+    } catch {
+      toast.error("Failed to resend OTP ❌");
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  useEffect(() => {
+    if (resendTimer > 0) {
+      const t = setTimeout(() => setResendTimer((s) => s - 1), 1000);
+      return () => clearTimeout(t);
+    }
+  }, [resendTimer]);
+
+  const handleOtpChange = (value) => {
+    setOtp(value);
+  };
+
+  useEffect(() => {
+    async function verifyOtp() {
+      if (otp.length === 6) {
+        setOtpLoading(true);
+        try {
+          await api("/mail/verify-otp", {
+            method: "POST",
+            body: JSON.stringify({ email: user.email, otp }),
+          });
+          setOtpVerified(true);
+          toast.success("OTP verified ✅");
+        } catch {
+          toast.error("Invalid OTP ❌");
+          setOtp("");
+        } finally {
+          setOtpLoading(false);
+        }
+      }
+    }
+    verifyOtp();
+  }, [otp]);
+
+  async function submitPayment() {
     try {
       setLoading(true);
       setStatus("");
 
       const body = {
-        from,
+        from: user,
         to,
         amount_micros: Number(amount),
         nonce,
@@ -56,17 +142,21 @@ export default function Payments() {
       });
 
       setStatus(`✅ Payment Accepted! Pox ID: ${out.pox_id}`);
+      toast.success("Payment completed 🎉");
     } catch (err) {
       console.error(err);
       setStatus("❌ Payment Failed. Check your details or try again.");
     } finally {
       setLoading(false);
+      setOtpOpen(false);
+      setOtp("");
+      setOtpVerified(false);
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br p-6">
-      <div className="w-full flex-1 p-8">
+    <div className="min-h-[70dvh] flex items-center justify-center bg-gradient-to-br p-6">
+      <div className="w-full max-w-lg bg-white p-6 rounded-2xl shadow-md">
         <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
           💸 Send Deterministic Payment
         </h2>
@@ -74,28 +164,16 @@ export default function Payments() {
         <div className="flex flex-col gap-4 w-full">
           <input
             className="p-3 border border-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-            placeholder="From Wallet ID"
-            value={from}
-            onChange={(e) => setFrom(e.target.value)}
-          />
-          <input
-            className="p-3 border border-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-            placeholder="From Public Key (base58)"
-            value={fromPub}
-            onChange={(e) => setFromPub(e.target.value)}
+            placeholder="To Wallet ID"
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
           />
           <input
             type="password"
             className="p-3 border border-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-            placeholder="From Secret Key (base64)"
+            placeholder="Your Secret Key"
             value={fromSecret}
             onChange={(e) => setFromSecret(e.target.value)}
-          />
-          <input
-            className="p-3 border border-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-            placeholder="To Wallet ID"
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
           />
           <input
             type="number"
@@ -118,20 +196,24 @@ export default function Payments() {
           />
 
           <button
-            onClick={submit}
-            disabled={loading}
+            onClick={handleSubmitClick}
+            disabled={loading || sendingOtp}
             className={`mt-3 p-3 w-full rounded-lg text-white font-medium transition ${
-              loading
+              loading || sendingOtp
                 ? "bg-blue-300 cursor-not-allowed"
                 : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
-            {loading ? "Processing..." : "Submit Payment"}
+            {sendingOtp
+              ? "Sending OTP..."
+              : loading
+              ? "Processing..."
+              : "Submit Payment"}
           </button>
 
           {status && (
             <div
-              className={`mt-3 h-fit font-medium break-words whitespace-pre-wrap w-full max-w-full ${
+              className={`mt-3 font-medium break-words whitespace-pre-wrap w-full ${
                 status.startsWith("✅")
                   ? "text-green-600"
                   : status.startsWith("❌")
@@ -143,13 +225,75 @@ export default function Payments() {
             </div>
           )}
         </div>
-
-        <p className="mt-6 text-sm text-gray-500 text-center">
-          ⚠️ <b>Security Note:</b> Client-side secrets are for{" "}
-          <span className="text-red-500">development only</span>. Use a secure
-          signer in production.
-        </p>
       </div>
+
+      {/* OTP Modal */}
+      {otpOpen && (
+        <div className="fixed inset-0 bg-black/40 flex justify-center items-center">
+          <div className="bg-white rounded-2xl shadow-lg w-full max-w-sm p-6 relative">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4 text-center">
+              🔒 Verify OTP
+            </h3>
+            <p className="text-sm text-gray-500 mb-4 text-center">
+              Enter the 6-digit OTP sent to your email.
+            </p>
+
+            <div className="flex justify-center mb-4">
+              <OtpInput onChange={handleOtpChange} disabled={!otpVerified} />
+            </div>
+
+            {otpLoading && (
+              <div className="flex justify-center items-center gap-2 mb-3">
+                <div className="w-6 h-6 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                Verifying
+              </div>
+            )}
+
+            {!otpVerified && (
+              <div className="flex justify-center mb-4">
+                <button
+                  disabled={resendTimer > 0 || sendingOtp}
+                  onClick={handleResend}
+                  className={`text-blue-600 text-sm ${
+                    resendTimer > 0 || sendingOtp
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
+                  }`}
+                >
+                  {sendingOtp
+                    ? "Resending..."
+                    : resendTimer > 0
+                    ? `Resend OTP in ${resendTimer}s`
+                    : "Resend OTP"}
+                </button>
+              </div>
+            )}
+
+            <button
+              onClick={submitPayment}
+              disabled={!otpVerified || loading}
+              className={`w-full py-2 rounded-lg font-semibold text-white transition ${
+                otpVerified
+                  ? "bg-blue-600 hover:bg-blue-700"
+                  : "bg-gray-400 cursor-not-allowed"
+              }`}
+            >
+              {loading ? "Processing..." : "Confirm Payment"}
+            </button>
+
+            <button
+              onClick={() => {
+                setOtpOpen(false);
+                setOtp("");
+                setOtpVerified(false);
+              }}
+              className="absolute top-3 right-4 text-gray-400 hover:text-gray-600"
+            >
+              ✖
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
