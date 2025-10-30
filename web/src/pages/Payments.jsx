@@ -119,7 +119,7 @@ export default function Payments() {
       setStatus("");
 
       const body = {
-        from: user,
+        from: user.wallet_id.wallet_id,
         to,
         amount_micros: Number(amount),
         nonce,
@@ -137,15 +137,27 @@ export default function Payments() {
         body: JSON.stringify({
           canonical_body: c,
           from_sig: sig,
-          from_pubkey: fromPub,
+          from_pubkey: user.wallet_id.pubkey,
         }),
       });
 
       setStatus(`✅ Payment Accepted! Pox ID: ${out.pox_id}`);
-      toast.success("Payment completed 🎉");
+      toast.success("🎉 Payment completed successfully!");
     } catch (err) {
-      console.error(err);
-      setStatus("❌ Payment Failed. Check your details or try again.");
+      const msg = err?.response?.data?.error || err?.message || "";
+
+      if (msg.includes("invalid_sig")) {
+        setStatus("❌ Invalid signature. Please check your wallet keys.");
+        toast.error("Invalid signature ❌");
+      } else if (msg.includes("nonce_used")) {
+        setStatus(
+          "⚠️ Nonce already used. Try refreshing or using a new nonce."
+        );
+        toast.error("Nonce already used ⚠️");
+      } else {
+        setStatus("❌ Payment failed. Please try again later.");
+        toast.error("Payment failed ❌");
+      }
     } finally {
       setLoading(false);
       setOtpOpen(false);
@@ -239,7 +251,7 @@ export default function Payments() {
             </p>
 
             <div className="flex justify-center mb-4">
-              <OtpInput onChange={handleOtpChange} disabled={!otpVerified} />
+              <OtpInput onChange={handleOtpChange} disabled={otpVerified} />
             </div>
 
             {otpLoading && (
