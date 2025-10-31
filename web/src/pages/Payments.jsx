@@ -202,7 +202,7 @@ export default function Payments() {
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-6xl  p-6 rounded-2xl"
+        className="w-full max-w-6xl  md:p-6 rounded-2xl"
       >
         <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
           💸 Send Deterministic Payment

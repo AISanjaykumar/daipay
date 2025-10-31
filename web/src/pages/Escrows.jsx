@@ -116,7 +116,7 @@ export default function Escrows() {
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-6xl p-6 sm:p-8"
+        className="w-full max-w-6xl md:p-6 p-3"
       >
         <h2 className="text-2xl font-semibold text-gray-800 text-center mb-5">
           🤝 My Escrows

@@ -38,7 +38,7 @@ export default function Anchors() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6">
-      <div className="w-full bg-white px-8">
+      <div className="w-full bg-white md:px-6">
         <h2 className="text-2xl font-semibold text-gray-800 my-6 text-center">
           🌐 Anchor Management
         </h2>
@@ -66,7 +66,7 @@ export default function Anchors() {
           <button
             onClick={run}
             disabled={loading}
-            className={`mt-5 px-6 py-3 rounded-lg text-white font-medium transition ${
+            className={`mt-5 w-full md:w-fit px-6 py-3 rounded-lg text-white font-medium transition ${
               loading
                 ? "bg-blue-300 cursor-not-allowed"
                 : "bg-blue-600 hover:bg-blue-700"
@@ -97,8 +97,11 @@ export default function Anchors() {
             {items.map((a) => (
               <div
                 key={a.anchor_id}
-                className="border border-gray-200 rounded-xl p-4 bg-gray-50 hover:shadow-md transition"
+                className="border border-gray-200 rounded-xl p-4 bg-gray-50 hover:shadow-md transition relative overflow-auto"
               >
+                <span className="px-3 absolute drop-shadow-sm top-3 right-4 py-1 text-xs rounded-full bg-blue-100 text-blue-700">
+                  {a.chain}
+                </span>
                 <div className="flex justify-between items-center">
                   <div className="text-sm text-gray-700">
                     <b>ID:</b>{" "}
@@ -106,9 +109,6 @@ export default function Anchors() {
                       {a.anchor_id}
                     </code>
                   </div>
-                  <span className="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-700">
-                    {a.chain}
-                  </span>
                 </div>
 
                 <div className="text-sm text-gray-700 mt-2">
