@@ -63,7 +63,7 @@ export default function Signup() {
           password,
         }
       );
-      setUser(data);
+      setUser(data.user);
       toast.success("Signup successful 🎉");
       setTimeout(() => navigate("/dashboard"), 1000);
     } catch (err) {

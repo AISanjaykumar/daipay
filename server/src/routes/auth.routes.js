@@ -51,11 +51,13 @@ r.post("/signup", async (req, res) => {
 
     res.json({
       message: "Signup successful",
-      user: safeUser,
-      wallet: {
-        wallet_id: wallet.wallet_id,
-        pubkey: wallet.pubkey,
-        balance_micros: wallet.balance_micros,
+      user: {
+        ...safeUser,
+        wallet: {
+          wallet_id: wallet.wallet_id,
+          pubkey: wallet.pubkey,
+          balance_micros: 1000000,
+        }
       },
     });
   } catch (err) {

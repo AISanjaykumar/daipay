@@ -6,7 +6,7 @@ import { api } from "../api/client.js";
 import { useAuth } from "../context/AuthContext.jsx";
 
 export default function Wallets() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [transactions, setTransactions] = useState([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -32,6 +32,10 @@ export default function Wallets() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    refreshUser();
+  }, [user?.wallet_id]);
 
   useEffect(() => {
     loadTransactions();
