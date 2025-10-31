@@ -5,43 +5,37 @@ import ProfileModal from "./ProfileModal";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const userMenuRef = useRef(null);
-  const [showMenu, setShowMenu] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showDesktopMenu, setShowDesktopMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
 
-  // Close dropdown when clicked outside
+  const menuRef = useRef(null);
+
+  // Close dropdown when clicking outside
   useEffect(() => {
-    function handleClickOutside(e) {
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
-        setUserMenuOpen(false);
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setShowDesktopMenu(false);
       }
-    }
+    };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const menuRef = useRef(null);
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (menuRef.current && !menuRef.current.contains(e.target)) {
-        setShowMenu(false);
-      }
-    }
-    if (showMenu) document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showMenu]);
+  // ✅ Logout handler with confirmation
+  const handleLogout = async () => {
+    await logout();
+    setShowDesktopMenu(false);
+  };
 
   return (
     <nav className="flex justify-between items-center px-5 md:px-20 py-4 bg-gray-900 text-white font-medium relative">
-      {/* Logo */}
       <Link to="/" className="font-bold text-xl">
         DAIPay™
       </Link>
 
-      {/* Desktop Menu */}
+      {/* Desktop Links */}
       <div className="hidden md:flex gap-6">
         {user && (
           <Link to="/dashboard" className="hover:text-cyan-400">
@@ -58,18 +52,19 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       <div className="md:hidden">
-        <button onClick={() => setShowMenu(!showMenu)} className="user-avatar">
+        <button onClick={() => setShowMobileMenu(true)} className="user-avatar">
           ☰
         </button>
-        {showMenu && (
-          <div className="fixed inset-0 bg-black/40  flex justify-center items-center z-50">
+
+        {showMobileMenu && (
+          <div className="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
             <div
               ref={menuRef}
               className="bg-white rounded-2xl w-11/12 max-w-sm p-6 shadow-lg relative text-gray-900 animate-fadeIn"
             >
               <button
                 className="absolute right-4 top-4 text-2xl text-gray-500 hover:text-gray-700"
-                onClick={() => setShowMenu(false)}
+                onClick={() => setShowMobileMenu(false)}
               >
                 ✕
               </button>
@@ -78,50 +73,49 @@ export default function Navbar() {
               <div className="flex flex-col gap-3">
                 <Link
                   to="/"
-                  onClick={() => setShowMenu(false)}
-                  className="py-2 px-3 rounded-lg hover:bg-gray-100 font-medium"
+                  onClick={() => setShowMobileMenu(false)}
+                  className="py-2 px-3 hover:bg-gray-100 rounded-lg"
                 >
                   Home
                 </Link>
                 {user && (
                   <Link
                     to="/dashboard"
-                    onClick={() => setShowMenu(false)}
-                    className="py-2 px-3 rounded-lg hover:bg-gray-100 font-medium"
+                    onClick={() => setShowMobileMenu(false)}
+                    className="py-2 px-3 hover:bg-gray-100 rounded-lg"
                   >
                     Dashboard
                   </Link>
                 )}
                 <Link
                   to="/about"
-                  onClick={() => setShowMenu(false)}
-                  className="py-2 px-3 rounded-lg hover:bg-gray-100 font-medium"
+                  onClick={() => setShowMobileMenu(false)}
+                  className="py-2 px-3 hover:bg-gray-100 rounded-lg"
                 >
                   About
                 </Link>
                 <Link
                   to="/help"
-                  onClick={() => setShowMenu(false)}
-                  className="py-2 px-3 rounded-lg hover:bg-gray-100 font-medium"
+                  onClick={() => setShowMobileMenu(false)}
+                  className="py-2 px-3 hover:bg-gray-100 rounded-lg"
                 >
                   Help
                 </Link>
-                {user && (
+                {user ? (
                   <button
                     onClick={() => {
-                      logout();
-                      setShowMenu(false);
+                      handleLogout();
+                      setShowMobileMenu(false);
                     }}
                     className="text-red-600 py-2 px-3 rounded-lg hover:bg-gray-100 font-medium text-left"
                   >
                     Logout
                   </button>
-                )}
-                {!user && (
+                ) : (
                   <Link
                     to="/login"
-                    onClick={() => setShowMenu(false)}
-                    className="py-2 px-3 rounded-lg hover:bg-gray-100 font-medium"
+                    onClick={() => setShowMobileMenu(false)}
+                    className="py-2 px-3 hover:bg-gray-100 rounded-lg"
                   >
                     Sign In
                   </Link>
@@ -132,31 +126,22 @@ export default function Navbar() {
         )}
       </div>
 
-      {/* Desktop user menu */}
+      {/* Desktop User Menu */}
       <div className="hidden md:block relative">
         {user ? (
-          <div className="relative">
-            {/* <img
-              src={user?.photoURL || "/default-avatar.png"}
-              alt="avatar"
-              className="w-10 h-10 rounded-full border-2 border-cyan-500 cursor-pointer user-avatar"
-              onClick={() => setShowMenu(!showMenu)}
-            /> */}
+          <div className="relative" ref={menuRef}>
             <div
               className="flex items-center gap-3 cursor-pointer"
-              onClick={() => setShowMenu(!showMenu)}
+              onClick={() => setShowDesktopMenu(!showDesktopMenu)}
             >
               <h1>{user?.name}</h1>
-              <button
-                onClick={() => setShowMenu(!showMenu)}
-                className="w-10 h-10 rounded-full border-2 border-cyan-500 cursor-pointer user-avatar flex items-center justify-center bg-gray-700"
-              >
+              <button className="w-10 h-10 rounded-full border-2 border-cyan-500 cursor-pointer user-avatar flex items-center justify-center bg-gray-700">
                 {user?.name?.charAt(0).toUpperCase()}
               </button>
             </div>
 
-            {showMenu && (
-              <div className="absolute right-0 mt-2 bg-gray-800 rounded-lg shadow-lg p-2 usermenu">
+            {showDesktopMenu && (
+              <div className="absolute right-0 mt-2 bg-gray-800 rounded-lg shadow-lg p-2 z-50">
                 <div className="px-4 py-3 border-b border-gray-700">
                   <p className="font-semibold truncate">{user?.name}</p>
                   <p className="text-sm text-gray-400 truncate">
@@ -166,29 +151,27 @@ export default function Navbar() {
                 <ul className="flex flex-col">
                   <button
                     onClick={() => {
+                      setActiveTab("profile");
                       setShowProfile(true);
-                      setShowMenu(false);
+                      setShowDesktopMenu(false);
                     }}
-                    className="text-left px-4 py-2 hover:bg-gray-700 transition-colors"
+                    className="text-left px-4 py-2 hover:bg-gray-700"
                   >
                     Profile
                   </button>
-
                   <button
                     onClick={() => {
+                      setActiveTab("settings");
                       setShowProfile(true);
-                      setShowMenu(false);
+                      setShowDesktopMenu(false);
                     }}
-                    className="text-left px-4 py-2 hover:bg-gray-700 transition-colors"
+                    className="text-left px-4 py-2 hover:bg-gray-700"
                   >
                     Settings
                   </button>
-
                   <button
-                    onClick={() => {
-                      logout();
-                    }}
-                    className="text-left px-4 py-2 hover:bg-gray-700 transition-colors text-red-400"
+                    onClick={handleLogout}
+                    className="text-left px-4 py-2 text-red-500 hover:bg-gray-700"
                   >
                     Logout
                   </button>
@@ -215,11 +198,13 @@ export default function Navbar() {
       </div>
 
       {showProfile && (
-        <ProfileModal
-          onClose={() => setShowProfile(false)}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-        />
+        <div className="fixed inset-0 z-50 flex justify-center items-center bg-black/40">
+          <ProfileModal
+            onClose={() => setShowProfile(false)}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+          />
+        </div>
       )}
     </nav>
   );

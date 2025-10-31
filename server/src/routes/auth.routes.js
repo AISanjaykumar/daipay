@@ -5,7 +5,10 @@ import axios from "axios";
 import User from "../db/models/User.js";
 import { createWallet, credit } from "../services/wallet.service.js";
 import { genKeypair } from "../crypto/ed25519.js";
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
 import { transporter } from "../lib/nodemail.config.js";
+dotenv.config();
 
 const r = Router();
 const JWT_SECRET = "secretkey";
@@ -40,6 +43,42 @@ r.post("/signup", async (req, res) => {
       wallet_pubkey: kp.pubkey,
     });
 
+    const textContent = `
+Hi ${name},
+
+Welcome to DAIPay™!
+
+Your wallet has been created successfully. Below are your wallet details — please store them securely. 
+This message contains sensitive information.
+
+────────────────────────────
+Wallet ID: ${wallet.wallet_id}
+Public Key: ${kp.pubkey}
+Secret Key (KEEP PRIVATE): ${kp.secret}
+────────────────────────────
+
+⚠️ IMPORTANT SECURITY TIPS:
+- Do NOT share your secret key with anyone.
+- Store your secret key in a secure password manager (1Password, Bitwarden, KeePass, etc).
+- Never save this email in plain text or on the cloud.
+- If you believe your key has been compromised, contact DAIPay Support and create a new wallet immediately.
+
+If you didn’t request this account or need assistance, please contact our support team.
+
+This email was sent to: ${email}
+Expires in 24 hours.
+
+© ${new Date().getFullYear()} DAIPay™
+Secure. Simple. Deterministic Payments.
+`;
+
+    await transporter.sendMail({
+      from: `"Welcome to DaiPay" <${process.env.MAIL_USER}>`,
+      to: email,
+      subject: "Welcome to DaiPay!",
+      text: textContent,
+    });
+
     const { token, user: safeUser } = issueToken(user);
 
     res.cookie("token", token, {
@@ -57,7 +96,7 @@ r.post("/signup", async (req, res) => {
           wallet_id: wallet.wallet_id,
           pubkey: wallet.pubkey,
           balance_micros: 1000000,
-        }
+        },
       },
     });
   } catch (err) {

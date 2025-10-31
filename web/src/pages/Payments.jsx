@@ -261,7 +261,7 @@ export default function Payments() {
           />
 
           <button
-            onClick={submitPayment}
+            onClick={handleSubmitClick}
             disabled={loading || sendingOtp}
             className={`mt-3 p-3 w-full rounded-lg text-white font-medium transition ${
               loading || sendingOtp

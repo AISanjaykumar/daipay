@@ -72,4 +72,33 @@ router.post("/verify-otp", async (req, res) => {
   }
 });
 
+router.post("/welcome", async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "Email required" });
+
+    let user = await User.findOne({ email });
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    // Send email
+    await transporter.sendMail({
+      from: `"Welcome to DaiPay" <${process.env.MAIL_USER}>`,
+      to: email,
+      subject: "Welcome to DaiPay!",
+      text: `Welcome to DaiPay, ${user.name}! We're glad to have you on board.`,
+    });
+
+    return res.json({
+      success: true,
+      message: "Welcome email sent successfully",
+    });
+  } catch (err) {
+    console.error("Send welcome email error:", err);
+    res.status(500).json({ success: false, message: "Failed to send OTP" });
+  }
+});
+
 export default router;
