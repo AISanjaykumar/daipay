@@ -5,6 +5,8 @@ import bs58 from "bs58";
 import toast from "react-hot-toast";
 import OtpInput from "../components/OTP.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
+import { IoRefresh } from "react-icons/io5";
+import { motion, AnimatePresence } from "framer-motion";
 
 function canonical(obj) {
   return JSON.stringify(
@@ -196,13 +198,22 @@ export default function Payments() {
   }
 
   return (
-    <div className="min-h-[70dvh] flex items-center justify-center bg-gradient-to-br p-6">
-      <div className="w-full max-w-lg bg-white p-6 rounded-2xl shadow-md">
+    <div className="min-h-[70dvh] flex items-center justify-center bg-gradient-to-br from-white via-emerald-50 to-white p-6">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-6xl  p-6 rounded-2xl"
+      >
         <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
           💸 Send Deterministic Payment
         </h2>
 
-        <div className="flex flex-col gap-4 w-full">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="flex flex-col bg-white p-4 shadow-md rounded-xl gap-4 w-full"
+        >
           <input
             className="p-3 border border-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
             placeholder="To Wallet ID"
@@ -223,12 +234,25 @@ export default function Payments() {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
           />
-          <input
-            className="p-3 border border-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-            placeholder="Nonce"
-            value={nonce}
-            onChange={(e) => setNonce(e.target.value)}
-          />
+          <div className="relative">
+            <input
+              className="w-full p-3 border border-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              placeholder="Nonce"
+              value={nonce}
+              onChange={(e) => setNonce(e.target.value)}
+            />
+            <div className="absolute right-0 top-0 h-full flex items-center">
+              <button
+                className="flex items-center gap-2 absolute right-2 p-2 rounded-lg hover:bg-gray-100 transition"
+                onClick={() =>
+                  setNonce("n-" + Math.random().toString(36).slice(2))
+                }
+              >
+                <IoRefresh />
+                Refresh
+              </button>
+            </div>
+          </div>
           <input
             className="p-3 border border-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
             placeholder="Ref (optional)"
@@ -265,8 +289,8 @@ export default function Payments() {
               {status}
             </div>
           )}
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* OTP Modal */}
       {otpOpen && (
