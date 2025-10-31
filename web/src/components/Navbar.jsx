@@ -23,6 +23,17 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const menuRef = useRef(null);
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setShowMenu(false);
+      }
+    }
+    if (showMenu) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showMenu]);
+
   return (
     <nav className="flex justify-between items-center px-5 md:px-20 py-4 bg-gray-900 text-white font-medium relative">
       {/* Logo */}
@@ -32,9 +43,6 @@ export default function Navbar() {
 
       {/* Desktop Menu */}
       <div className="hidden md:flex gap-6">
-        <Link to="/" className="hover:text-cyan-400">
-          Home
-        </Link>
         {user && (
           <Link to="/dashboard" className="hover:text-cyan-400">
             Dashboard
@@ -54,39 +62,72 @@ export default function Navbar() {
           ☰
         </button>
         {showMenu && (
-          <div className="absolute right-4 top-16 bg-gray-800 p-3 rounded-lg space-y-2 usermenu">
-            {user ? (
-              <>
-                <button
-                  onClick={() => {
-                    setShowProfile(true);
-                    setShowMenu(false);
-                  }}
-                  className="block w-full text-left hover:text-cyan-400"
+          <div className="fixed inset-0 bg-black/40  flex justify-center items-center z-50">
+            <div
+              ref={menuRef}
+              className="bg-white rounded-2xl w-11/12 max-w-sm p-6 shadow-lg relative text-gray-900 animate-fadeIn"
+            >
+              <button
+                className="absolute right-4 top-4 text-2xl text-gray-500 hover:text-gray-700"
+                onClick={() => setShowMenu(false)}
+              >
+                ✕
+              </button>
+
+              <h2 className="text-xl font-semibold mb-4">Menu</h2>
+              <div className="flex flex-col gap-3">
+                <Link
+                  to="/"
+                  onClick={() => setShowMenu(false)}
+                  className="py-2 px-3 rounded-lg hover:bg-gray-100 font-medium"
                 >
-                  Profile
-                </button>
-                <button
-                  onClick={() => {
-                    setShowProfile(true);
-                    setShowMenu(false);
-                  }}
-                  className="block w-full text-left hover:text-cyan-400"
+                  Home
+                </Link>
+                {user && (
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setShowMenu(false)}
+                    className="py-2 px-3 rounded-lg hover:bg-gray-100 font-medium"
+                  >
+                    Dashboard
+                  </Link>
+                )}
+                <Link
+                  to="/about"
+                  onClick={() => setShowMenu(false)}
+                  className="py-2 px-3 rounded-lg hover:bg-gray-100 font-medium"
                 >
-                  Settings
-                </button>
-                <button
-                  onClick={logout}
-                  className="block w-full text-left hover:text-cyan-400"
+                  About
+                </Link>
+                <Link
+                  to="/help"
+                  onClick={() => setShowMenu(false)}
+                  className="py-2 px-3 rounded-lg hover:bg-gray-100 font-medium"
                 >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <a href="/login" className="block hover:text-cyan-400">
-                Login
-              </a>
-            )}
+                  Help
+                </Link>
+                {user && (
+                  <button
+                    onClick={() => {
+                      logout();
+                      setShowMenu(false);
+                    }}
+                    className="text-red-600 py-2 px-3 rounded-lg hover:bg-gray-100 font-medium text-left"
+                  >
+                    Logout
+                  </button>
+                )}
+                {!user && (
+                  <Link
+                    to="/login"
+                    onClick={() => setShowMenu(false)}
+                    className="py-2 px-3 rounded-lg hover:bg-gray-100 font-medium"
+                  >
+                    Sign In
+                  </Link>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -101,11 +142,15 @@ export default function Navbar() {
               className="w-10 h-10 rounded-full border-2 border-cyan-500 cursor-pointer user-avatar"
               onClick={() => setShowMenu(!showMenu)}
             /> */}
-            <div className="flex items-center gap-3 cursor-pointer" onClick={() => setShowMenu(!showMenu)}>
+            <div
+              className="flex items-center gap-3 cursor-pointer"
+              onClick={() => setShowMenu(!showMenu)}
+            >
               <h1>{user?.name}</h1>
               <button
                 onClick={() => setShowMenu(!showMenu)}
-                className="w-10 h-10 rounded-full border-2 border-cyan-500 cursor-pointer user-avatar flex items-center justify-center bg-gray-700" >
+                className="w-10 h-10 rounded-full border-2 border-cyan-500 cursor-pointer user-avatar flex items-center justify-center bg-gray-700"
+              >
                 {user?.name?.charAt(0).toUpperCase()}
               </button>
             </div>
