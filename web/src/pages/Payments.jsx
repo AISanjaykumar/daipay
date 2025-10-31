@@ -180,6 +180,9 @@ export default function Payments() {
       } else if (msg.includes("insufficient_balance")) {
         setStatus("⚠️ Insufficient balance. Please check your wallet.");
         toast.error("Insufficient balance ⚠️");
+      } else if (msg.includes("wallet_not_found")) {
+        setStatus("⚠️ Wallet not found. Please check your wallet.");
+        toast.error("Wallet not found ⚠️");
       } else {
         setStatus("❌ Payment failed. Please try again later.");
         toast.error("Payment failed ❌");
