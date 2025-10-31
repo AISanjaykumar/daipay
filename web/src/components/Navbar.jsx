@@ -142,8 +142,6 @@ export default function Navbar() {
                   <button
                     onClick={() => {
                       logout();
-                      setShowModal(false);
-                      if (onCloseMenu) onCloseMenu();
                     }}
                     className="text-left px-4 py-2 hover:bg-gray-700 transition-colors text-red-400"
                   >

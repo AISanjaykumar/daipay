@@ -10,20 +10,23 @@ export async function createWallet(pubkey, label, secretkey) {
     label,
     secretkey,
     balance_micros: 0,
+    created_at: new Date(),
   });
 }
 
 export async function getBalance(wallet_id) {
   const w = await Wallet.findOne({ wallet_id });
-  return w?.balance_micros ?? 0;
+  if (!w) throw new Error("wallet_not_found");
+  return w.balance_micros;
 }
 
 export async function credit(wallet_id, amount, note = "Credit to wallet") {
-  await Wallet.updateOne(
-    { wallet_id },
-    { $inc: { balance_micros: amount } },
-    { upsert: true }
-  );
+  const w = await Wallet.findOne({ wallet_id });
+  if (!w) throw new Error("wallet_not_found");
+
+  w.balance_micros += amount;
+  await w.save();
+
   await recordTransaction({
     type: "credit",
     to_wallet: wallet_id,
@@ -34,7 +37,8 @@ export async function credit(wallet_id, amount, note = "Credit to wallet") {
 
 export async function debit(wallet_id, amount, note = "Debit from wallet") {
   const w = await Wallet.findOne({ wallet_id });
-  if (!w || w.balance_micros < amount) throw new Error("insufficient_balance");
+  if (!w) throw new Error("wallet_not_found");
+  if (w.balance_micros < amount) throw new Error("insufficient_balance");
 
   w.balance_micros -= amount;
   await w.save();
@@ -50,17 +54,18 @@ export async function debit(wallet_id, amount, note = "Debit from wallet") {
 // 🔄 Transfer between wallets
 export async function transfer(from_wallet, to_wallet, amount) {
   const sender = await Wallet.findOne({ wallet_id: from_wallet });
-  if (!sender || sender.balance_micros < amount)
-    throw new Error("insufficient_balance");
+  const receiver = await Wallet.findOne({ wallet_id: to_wallet });
+
+  if (!sender) throw new Error("sender_wallet_not_found");
+  if (!receiver) throw new Error("receiver_wallet_not_found");
+
+  if (sender.balance_micros < amount) throw new Error("insufficient_balance");
 
   sender.balance_micros -= amount;
-  await sender.save();
+  receiver.balance_micros += amount;
 
-  await Wallet.updateOne(
-    { wallet_id: to_wallet },
-    { $inc: { balance_micros: amount } },
-    { upsert: true }
-  );
+  await sender.save();
+  await receiver.save();
 
   await recordTransaction({
     type: "transfer",

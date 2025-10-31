@@ -18,7 +18,7 @@ function canonical(obj) {
 }
 
 export default function Payments() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
 
   const [to, setTo] = useState("");
   const [from, setFrom] = useState("");
@@ -135,7 +135,7 @@ export default function Payments() {
       setStatus("");
 
       const body = {
-        from: user.wallet_id.wallet_id,
+        from: user.wallet.wallet_id,
         to,
         amount_micros: Number(amount),
         nonce,
@@ -153,13 +153,20 @@ export default function Payments() {
         body: JSON.stringify({
           canonical_body: c,
           from_sig: sig,
-          from_pubkey: user.wallet_id.pubkey,
+          from_pubkey: user.wallet.pubkey,
         }),
       });
-
+      refreshUser();
+      setTo("");
+      setFromSecret("");
+      setAmount(100000);
+      setNonce("n-" + Math.random().toString(36).slice(2));
+      setRef("por:demo");
       setStatus(`✅ Payment Accepted! Pox ID: ${out.pox_id}`);
       toast.success("🎉 Payment completed successfully!");
     } catch (err) {
+      console.log(err);
+
       const msg = err?.response?.data?.error || err?.message || "";
 
       if (msg.includes("invalid_sig")) {
@@ -170,6 +177,9 @@ export default function Payments() {
           "⚠️ Nonce already used. Try refreshing or using a new nonce."
         );
         toast.error("Nonce already used ⚠️");
+      } else if (msg.includes("insufficient_balance")) {
+        setStatus("⚠️ Insufficient balance. Please check your wallet.");
+        toast.error("Insufficient balance ⚠️");
       } else {
         setStatus("❌ Payment failed. Please try again later.");
         toast.error("Payment failed ❌");
@@ -224,7 +234,7 @@ export default function Payments() {
           />
 
           <button
-            onClick={handleSubmitClick}
+            onClick={submitPayment}
             disabled={loading || sendingOtp}
             className={`mt-3 p-3 w-full rounded-lg text-white font-medium transition ${
               loading || sendingOtp

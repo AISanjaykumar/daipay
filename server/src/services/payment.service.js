@@ -33,10 +33,17 @@ export async function submitPayment(body, from_sig, from_pubkey) {
       await credit(body.to, body.amount_micros);
     } catch (err) {
       console.error("[submitPayment] Balance update failed:", err.message);
+
+      if (
+        err.message.includes("insufficient_balance") ||
+        err.message.includes("wallet_not_found")
+      ) {
+        throw err;
+      }
+
       throw new Error("balance_error");
     }
 
-    // ✅ Record payment and ledger receipt
     const pox_id = h512(digest + from_sig);
     const paymentRecord = await Payment.create({
       pox_id,
@@ -55,7 +62,6 @@ export async function submitPayment(body, from_sig, from_pubkey) {
     return { pox_id, receipt_id, payment: paymentRecord };
   } catch (err) {
     console.error("[submitPayment] Error:", err.message);
-    // Rethrow with clear message for API handler
     throw new Error(err.message || "payment_failed");
   }
 }

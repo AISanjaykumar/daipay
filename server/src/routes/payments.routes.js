@@ -11,11 +11,17 @@ r.post("/submit", async (req, res) => {
     const out = await submitPayment(body, from_sig, from_pubkey);
     res.json({ status: "accepted", ...out });
   } catch (e) {
-    console.log("Payment submission error:", e.message);
-    res.status(400).json({
-      status: "error",
-      error: e.message || "unknown_error",
-    });
+    console.error("[/payments/submit] Error:", e.message);
+
+    let code = 400;
+    let error = e.message || "payment_failed";
+
+    if (error.includes("invalid_sig")) code = 400;
+    else if (error.includes("nonce_used")) code = 409;
+    else if (error.includes("insufficient_balance")) code = 402;
+    else if (error.includes("wallet_not_found")) code = 404;
+
+    res.status(code).json({ error });
   }
 });
 

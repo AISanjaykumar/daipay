@@ -134,19 +134,30 @@ r.post("/google", async (req, res) => {
 });
 
 // Auto refresh route
+// Auto refresh route
 r.get("/me", async (req, res) => {
   try {
     console.log("Auth /me called");
     const token = req.cookies.token;
-    console.log("token :", token);
     if (!token) return res.status(401).json({ message: "Not authenticated" });
 
     const decoded = jwt.verify(token, JWT_SECRET);
-    const user = await User.findById(decoded.id).select("-password");
+
+    // 🧩 populate wallet details
+    const user = await User.findById(decoded.id)
+      .select("-password")
+      .populate("wallet_id", "wallet_id pubkey balance_micros");
+
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    res.json({ user });
+    // 🪙 flatten wallet field for frontend consistency
+    const userObj = user.toObject();
+    userObj.wallet = userObj.wallet_id;
+    delete userObj.wallet_id;
+
+    res.json({ user: userObj });
   } catch (err) {
+    console.error("Auth /me error:", err.message);
     res.status(401).json({ message: "Invalid or expired token" });
   }
 });
