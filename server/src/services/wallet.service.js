@@ -2,13 +2,12 @@ import Wallet from "../db/models/Wallet.js";
 import { h512 } from "../crypto/hash.js";
 import { recordTransaction } from "./transaction.service.js";
 
-export async function createWallet(pubkey, label, secretkey) {
+export async function createWallet(pubkey, label) {
   const wallet_id = h512(pubkey);
   return Wallet.create({
     wallet_id,
     pubkey,
     label,
-    secretkey,
     balance_micros: 0,
     created_at: new Date(),
   });

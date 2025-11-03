@@ -36,20 +36,26 @@ export default function Signup() {
     else if (score === 5) setStrength("Strong");
   }, [password]);
 
-  const validateForm = () => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!name.trim()) return toast.error("Name is required");
-    if (!emailRegex.test(email)) return toast.error("Enter a valid email");
-    if (Object.values(passwordChecks).includes(false))
-      return toast.error("Password does not meet all requirements");
-    if (password !== confirmPassword)
-      return toast.error("Passwords do not match");
-    return true;
-  };
-
   const handleSignup = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!name.trim()) {
+      toast.error("Name is required");
+      return;
+    }
+    if (!emailRegex.test(email)) {
+      toast.error("Enter a valid email");
+      return;
+    }
+    if (Object.values(passwordChecks).includes(false)) {
+      toast.error("Password does not meet all requirements");
+      return;
+    }
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
 
     try {
       setLoading(true);

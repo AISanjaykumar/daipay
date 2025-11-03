@@ -1,14 +1,10 @@
-import { useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-
-// Existing dashboard pages
+import { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Payments from "./pages/Payments.jsx";
 import Wallets from "./pages/Wallets.jsx";
 import Blocks from "./pages/Blocks.jsx";
 import Escrows from "./pages/Escrows.jsx";
 import Anchors from "./pages/Anchors.jsx";
-
-// New public pages
 import Home from "./pages/Home.jsx";
 import About from "./pages/About.jsx";
 import Help from "./pages/Help.jsx";
@@ -17,9 +13,24 @@ import Signup from "./pages/Signup.jsx";
 import Login from "./pages/Login.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Navbar from "./components/Navbar.jsx";
+import { useAuth } from "./context/AuthContext.jsx";
+import SecretPopup from "./components/SecretPopup.jsx";
 
 export default function App() {
+  const { user } = useAuth();
   const [tab, setTab] = useState("payments");
+  const [showSecretPopup, setShowSecretPopup] = useState(false);
+
+  useEffect(() => {
+    if (user?.wallet?.secret_key) {
+      setShowSecretPopup(true);
+    }
+  }, [user]);
+
+  const handleClosePopup = () => {
+    setShowSecretPopup(false);
+  };
+
   const tabs = [
     { key: "payments", label: "Payments" },
     { key: "wallets", label: "Wallets" },
@@ -28,57 +39,27 @@ export default function App() {
     { key: "blocks", label: "Blocks" },
   ];
 
-  // Dashboard layout (for /app route)
   const Dashboard = () => (
-    <div
-      style={{
-        fontFamily: "system-ui, sans-serif",
-        maxWidth: 960,
-        margin: "32px auto",
-        padding: "0 20px",
-      }}
-    >
+    <div className="font-sans max-w-3xl mx-auto mt-10 px-5">
       {/* Header */}
-      <header style={{ textAlign: "center", marginBottom: "28px" }}>
-        <h1 style={{ fontSize: "2rem", fontWeight: 700, color: "#1e1e2f" }}>
-          ⚡ DAIPay™ MVP
-        </h1>
-        <p style={{ color: "#666", fontSize: "0.95rem", marginTop: "4px" }}>
+      <header className="text-center mb-7">
+        <h1 className="text-3xl font-bold text-gray-900">⚡ DAIPay™ MVP</h1>
+        <p className="text-gray-600 text-sm mt-1">
           Deterministic Micropayment System built on DAIChain™
         </p>
       </header>
 
       {/* Navigation Tabs */}
-      <nav
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: "12px",
-          flexWrap: "wrap",
-          marginBottom: "24px",
-        }}
-      >
+      <nav className="flex justify-center gap-3 flex-wrap mb-6">
         {tabs.map((t) => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            style={{
-              background: tab === t.key ? "#4f46e5" : "#f3f4f6",
-              color: tab === t.key ? "#fff" : "#111827",
-              border: "none",
-              borderRadius: "8px",
-              padding: "10px 16px",
-              cursor: "pointer",
-              fontWeight: 600,
-              boxShadow: tab === t.key ? "0 2px 5px rgba(0,0,0,0.15)" : "none",
-              transition: "all 0.2s",
-            }}
-            onMouseOver={(e) => {
-              if (tab !== t.key) e.currentTarget.style.background = "#e5e7eb";
-            }}
-            onMouseOut={(e) => {
-              if (tab !== t.key) e.currentTarget.style.background = "#f3f4f6";
-            }}
+            className={`px-4 py-2 rounded-lg font-semibold transition-all shadow-sm ${
+              tab === t.key
+                ? "bg-indigo-600 text-white shadow-md"
+                : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+            }`}
           >
             {t.label}
           </button>
@@ -86,13 +67,7 @@ export default function App() {
       </nav>
 
       {/* Active Tab Content */}
-      <main
-        style={{
-          background: "#fff",
-          borderRadius: "12px",
-          boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-        }}
-      >
+      <main className="bg-white rounded-xl shadow p-4">
         {tab === "payments" && <Payments />}
         {tab === "wallets" && <Wallets />}
         {tab === "escrows" && <Escrows />}
@@ -100,30 +75,17 @@ export default function App() {
         {tab === "blocks" && <Blocks />}
       </main>
 
-      {/* Footer */}
-      <footer
-        style={{
-          textAlign: "center",
-          marginTop: "32px",
-          color: "#6b7280",
-          fontSize: "0.9rem",
-        }}
-      >
-        API Base:{" "}
-        <code style={{ color: "#374151" }}>
-          {import.meta.env.VITE_API_BASE || "http://localhost:8080/v1"}
-        </code>
-      </footer>
+      {showSecretPopup && (
+        <SecretPopup user={user} onClose={handleClosePopup} />
+      )}
     </div>
   );
 
-  // Full App Router
   return (
     <Router>
-      {/* Simple top nav for public pages */}
       <Navbar />
       <Routes>
-        <Route path="/" element={<Home />} /> {/* Default page */}
+        <Route path="/" element={<Home />} />
         <Route
           path="/dashboard"
           element={
@@ -132,13 +94,11 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-        {/* Original tab-based dashboard */}
         <Route path="/about" element={<About />} />
         <Route path="/help" element={<Help />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
       </Routes>
-
       <Footer />
     </Router>
   );
