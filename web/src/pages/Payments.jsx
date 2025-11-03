@@ -23,9 +23,7 @@ export default function Payments() {
   const { user, refreshUser } = useAuth();
 
   const [to, setTo] = useState("");
-  const [from, setFrom] = useState("");
   const [amount, setAmount] = useState(100000);
-  const [fromPub, setFromPub] = useState("");
   const [fromSecret, setFromSecret] = useState("");
   const [nonce, setNonce] = useState(
     "n-" + Math.random().toString(36).slice(2)

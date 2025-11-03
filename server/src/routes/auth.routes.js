@@ -141,7 +141,6 @@ r.post("/google", async (req, res) => {
 // Auto refresh route
 r.get("/me", async (req, res) => {
   try {
-    console.log("Auth /me called");
     const token = req.cookies.token;
     if (!token) return res.status(401).json({ message: "Not authenticated" });
 

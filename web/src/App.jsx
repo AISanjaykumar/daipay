@@ -40,7 +40,7 @@ export default function App() {
   ];
 
   const Dashboard = () => (
-    <div className="font-sans max-w-3xl mx-auto mt-10 px-5">
+    <div className="font-sans max-w-5xl mx-auto mt-10 px-5">
       {/* Header */}
       <header className="text-center mb-7">
         <h1 className="text-3xl font-bold text-gray-900">⚡ DAIPay™ MVP</h1>
@@ -67,7 +67,7 @@ export default function App() {
       </nav>
 
       {/* Active Tab Content */}
-      <main className="bg-white rounded-xl shadow p-4">
+      <main className="bg-white rounded-xl overflow-hidden drop-shadow-lg mb-20">
         {tab === "payments" && <Payments />}
         {tab === "wallets" && <Wallets />}
         {tab === "escrows" && <Escrows />}

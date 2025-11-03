@@ -20,7 +20,9 @@ export default function Wallets() {
     if (!wallet?.wallet_id) return;
     try {
       setLoading(true);
-      const res = await api(`/transactions/${wallet.wallet_id}?page=${page}&limit=${limit}`);
+      const res = await api(
+        `/transactions/${wallet.wallet_id}?page=${page}&limit=${limit}`
+      );
       if (res.success) {
         setTransactions(res.transactions || []);
         setTotal(res.total || 0);
@@ -34,15 +36,16 @@ export default function Wallets() {
   }
 
   useEffect(() => {
-    refreshUser();
-  }, [user?.wallet_id]);
+    if (!user) refreshUser();
+  }, []);
 
   useEffect(() => {
-    loadTransactions();
-  }, [user, page]);
+    if (wallet?.wallet_id) loadTransactions(wallet.wallet_id);
+  }, [wallet?.wallet_id, page]);
 
   // 🔒 Helpers
-  const maskKey = (key = "") => (key.length > 12 ? `${key.slice(0, 6)}***${key.slice(-4)}` : key);
+  const maskKey = (key = "") =>
+    key.length > 12 ? `${key.slice(0, 6)}***${key.slice(-4)}` : key;
   const copyToClipboard = (text, label) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copied!`);
@@ -81,9 +84,13 @@ export default function Wallets() {
         >
           {/* Wallet ID */}
           <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4">
-            <h4 className="text-gray-600 text-sm font-semibold mb-2">🆔 Wallet ID</h4>
+            <h4 className="text-gray-600 text-sm font-semibold mb-2">
+              🆔 Wallet ID
+            </h4>
             <div className="flex items-center justify-between">
-              <span className="font-mono text-gray-800">{maskKey(wallet.wallet_id)}</span>
+              <span className="font-mono text-gray-800">
+                {maskKey(wallet.wallet_id)}
+              </span>
               <button
                 onClick={() => copyToClipboard(wallet.wallet_id, "Wallet ID")}
                 className="p-1 rounded hover:bg-indigo-100"
@@ -95,9 +102,13 @@ export default function Wallets() {
 
           {/* Public Key */}
           <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4">
-            <h4 className="text-gray-600 text-sm font-semibold mb-2">🔑 Public Key</h4>
+            <h4 className="text-gray-600 text-sm font-semibold mb-2">
+              🔑 Public Key
+            </h4>
             <div className="flex items-center justify-between">
-              <span className="font-mono text-gray-800">{maskKey(wallet.pubkey)}</span>
+              <span className="font-mono text-gray-800">
+                {maskKey(wallet.pubkey)}
+              </span>
               <button
                 onClick={() => copyToClipboard(wallet.pubkey, "Public Key")}
                 className="p-1 rounded hover:bg-indigo-100"
@@ -109,7 +120,9 @@ export default function Wallets() {
 
           {/* Balance */}
           <div className="bg-green-50 border border-green-100 rounded-xl p-4 sm:col-span-2">
-            <h4 className="text-gray-600 text-sm text-center font-semibold mb-2">💰 Balance</h4>
+            <h4 className="text-gray-600 text-sm text-center font-semibold mb-2">
+              💰 Balance
+            </h4>
             <motion.div
               key={wallet.balance_micros}
               initial={{ scale: 0.95, opacity: 0 }}
@@ -138,9 +151,13 @@ export default function Wallets() {
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
             {loading ? (
-              <p className="text-gray-500 text-center py-6 animate-pulse">Loading...</p>
+              <p className="text-gray-500 text-center py-6 animate-pulse">
+                Loading...
+              </p>
             ) : transactions.length === 0 ? (
-              <p className="text-gray-500 text-center py-6">No transactions yet.</p>
+              <p className="text-gray-500 text-center py-6">
+                No transactions yet.
+              </p>
             ) : (
               <AnimatePresence>
                 {transactions.map((tx) => (
@@ -159,7 +176,9 @@ export default function Wallets() {
                         <FaArrowUp className="text-red-500 text-lg" />
                       )}
                       <div>
-                        <p className="font-medium text-gray-800 capitalize">{tx.type}</p>
+                        <p className="font-medium text-gray-800 capitalize">
+                          {tx.type}
+                        </p>
                         <p className="text-xs text-gray-500">
                           {new Date(tx.updatedAt).toLocaleString()}
                         </p>

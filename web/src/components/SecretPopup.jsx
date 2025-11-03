@@ -34,8 +34,8 @@ export default function SecretPopup({ user, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/50 overflow-auto hide-scroll">
-      <div className="bg-white rounded-2xl top-10 md:top-0 p-6 w-11/12 max-w-md text-center shadow-2xl animate-fade-in relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/50 overflow-auto hide-scroll p-5">
+      <div className="bg-white rounded-2xl top-10 md:top-0 p-6 w-full md:w-3xl lg:w-4xl text-center shadow-2xl animate-fade-in relative">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
           🔐 Your Wallet Secret Key
         </h2>
@@ -45,20 +45,7 @@ export default function SecretPopup({ user, onClose }) {
         </p>
 
         <div className="bg-slate-50 border border-indigo-50 rounded-xl p-4 text-left space-y-3">
-          <div>
-            <div className="text-xs text-slate-500 mb-1">Wallet ID</div>
-            <div className="font-mono text-sm text-slate-900 break-all">
-              {user?.wallet?.wallet_id}
-            </div>
-          </div>
-
-          <div>
-            <div className="text-xs text-slate-500 mb-1">Public Key</div>
-            <div className="font-mono text-sm text-slate-900 break-all">
-              {user?.wallet?.pubkey}
-            </div>
-          </div>
-
+      
           <div className="border-t border-dashed border-indigo-100 pt-3">
             <div className="text-xs text-slate-500 mb-1">
               Secret Key{" "}
