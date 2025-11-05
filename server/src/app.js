@@ -2,19 +2,20 @@ import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import cookieParser from "cookie-parser";
+import helmet from "helmet";
+import payments from "./routes/payments.routes.js";
+import wallets from "./routes/wallets.routes.js";
+import transactions from "./routes/transactions.route.js";
+import blocks from "./routes/blocks.routes.js";
+import escrows from "./routes/escrows.routes.js";
+import anchors from "./routes/anchors.routes.js";
+import auth from "./routes/auth.routes.js";
+import mail from "./routes/mail.routes.js";
+import contract from "./routes/contracts.routes.js";
+import health from "./routes/health.route.js";
 
 import { errorHandler } from "./middleware/error.js";
 import { sealBlock } from "./services/ledger.service.js";
-
-import auth from "./routes/auth.routes.js";
-import mail from "./routes/mail.routes.js";
-import blocks from "./routes/blocks.routes.js";
-import escrows from "./routes/escrows.routes.js";
-import wallets from "./routes/wallets.routes.js";
-import anchors from "./routes/anchors.routes.js";
-import payments from "./routes/payments.routes.js";
-import contract from "./routes/contracts.routes.js";
-import transactions from "./routes/transactions.route.js";
 import { verifyAppAccess } from "./middleware/verifyAppAccess.js";
 
 dotenv.config();
@@ -23,13 +24,21 @@ const app = express();
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: (origin, callback) => {
+      const allowedOrigins = [process.env.CLIENT_URL];
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
 
-app.use(cookieParser());
 app.use(express.json({ limit: "2mb" }));
+app.use(helmet());
+app.use(cookieParser());
 
 app.use(verifyAppAccess);
 
@@ -42,6 +51,8 @@ app.use("/v1/anchors", anchors);
 app.use("/v1/payments", payments);
 app.use("/v1/contracts", contract);
 app.use("/v1/transactions", transactions);
+
+app.use("/v1/health", health);
 
 app.use(errorHandler);
 
