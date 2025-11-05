@@ -15,6 +15,7 @@ import anchors from "./routes/anchors.routes.js";
 import payments from "./routes/payments.routes.js";
 import contract from "./routes/contracts.routes.js";
 import transactions from "./routes/transactions.route.js";
+import { verifyAppAccess } from "./middleware/verifyAppAccess.js";
 
 dotenv.config();
 
@@ -29,6 +30,8 @@ app.use(
 
 app.use(cookieParser());
 app.use(express.json({ limit: "2mb" }));
+
+app.use(verifyAppAccess);
 
 app.use("/v1/mail", mail);
 app.use("/v1/auth", auth);

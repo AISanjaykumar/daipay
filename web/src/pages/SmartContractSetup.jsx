@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { FaCheckCircle, FaShieldAlt, FaBolt } from "react-icons/fa";
+import { api } from "../api/client";
 
 export default function SmartContractSetup() {
   const [template, setTemplate] = useState("escrow");
@@ -74,19 +75,11 @@ export default function SmartContractSetup() {
       contractHash,
     };
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_BASE}/contracts/deploy`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Idempotency-Key": contractHash,
-          },
-          body: JSON.stringify(payload),
-        }
-      );
-      if (!res.ok) throw new Error("Deploy failed");
-      const data = await res.json();
+      const data = await api("/contracts/deploy", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+
       setSignature(data.signature || `sig_${contractHash.slice(0, 12)}`);
       setStep("signed");
     } catch (e) {

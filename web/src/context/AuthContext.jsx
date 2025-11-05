@@ -1,8 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import axios from "axios";
-
-axios.defaults.baseURL = import.meta.env.VITE_API_BASE;
-axios.defaults.withCredentials = true; // ✅ Allow cookies
+import { api } from "../api/client";
 
 const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
@@ -14,9 +11,8 @@ export const AuthProvider = ({ children }) => {
   // ✅ Fetch current user
   const refreshUser = async () => {
     try {
-      const { data } = await axios.get(
-        `${import.meta.env.VITE_API_BASE}/auth/me`
-      );
+      const data = await api(`/auth/me`);
+
       setUser(data.user);
     } catch {
       setUser(null);
@@ -31,13 +27,16 @@ export const AuthProvider = ({ children }) => {
 
   // ✅ Google Login
   const googleLogin = async (token) => {
-    const { data } = await axios.post("/auth/google", { token });
+    const { data } = await api("/auth/google", {
+      method: "POST",
+      body: JSON.stringify({ token }),
+    });
     setUser(data.user);
   };
 
   // ✅ Logout (clears cookie)
   const logout = async () => {
-    await axios.post(`${import.meta.env.VITE_API_BASE}/auth/logout`);
+    await api("/auth/logout", { method: "POST" });
     setUser(null);
   };
 

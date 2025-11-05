@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
+import { api } from "../api/client";
 
 export default function Signup() {
   const [name, setName] = useState("");
@@ -61,19 +61,20 @@ export default function Signup() {
       setLoading(true);
       const payloadEmail = email.trim().toLowerCase();
 
-      const { data } = await axios.post(
-        `${import.meta.env.VITE_API_BASE}/auth/signup`,
-        {
+      const data = await api("/auth/signup", {
+        method: "POST",
+        body: JSON.stringify({
           name,
           email: payloadEmail,
           password,
-        }
-      );
+        }),
+      });
       setUser(data.user);
       toast.success("Signup successful 🎉");
       setTimeout(() => navigate("/dashboard"), 1000);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Signup failed");
+      console.log(err);
+      toast.error(err.message || "Signup failed");
     } finally {
       setLoading(false);
     }

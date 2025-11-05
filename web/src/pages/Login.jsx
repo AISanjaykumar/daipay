@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
+import { api } from "../api/client";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -36,13 +36,13 @@ export default function Login() {
     try {
       setLoading(true);
       const payloadEmail = email.trim().toLowerCase();
-      const { data } = await axios.post(
-        `${import.meta.env.VITE_API_BASE}/auth/login`,
-        {
+      const data = await api("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({
           email: payloadEmail,
           password,
-        }
-      );
+        }),
+      });
       setUser(data.user);
       toast.success("Login successful 🎉");
       setTimeout(() => navigate("/dashboard"), 1000);
