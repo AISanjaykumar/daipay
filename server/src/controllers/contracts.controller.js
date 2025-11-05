@@ -1,49 +1,38 @@
-import {
-  hashContract,
-  persistContract,
-  queueDeployment,
-} from "../services/contracts.service.js";
+// controller/contracts.controller.js
+import Contract from "../db/models/Contract.js";
+import { queueDeployment } from "../services/contracts.service.js";
 
-export const createContract = async (req, res, next) => {
+export async function getContracts(req, res, next) {
   try {
-    const {
-      template,
-      sender,
-      receiver,
-      amount,
-      trigger,
-      cooldown,
-      guardian,
-      summary,
-    } = req.body;
-    const contract = {
-      template,
-      sender,
-      receiver,
-      amount,
-      trigger,
-      cooldown,
-      guardian,
-      summary,
-    };
-    const hash = await hashContract(contract);
-    const doc = await persistContract({ ...contract, hash, status: "draft" });
-    res.status(201).json({ id: doc.id, hash, status: doc.status });
+    const contracts = await Contract.find().sort({ createdAt: -1 });
+    res.json(contracts);
   } catch (e) {
     next(e);
   }
-};
+}
 
-export const deployContract = async (req, res, next) => {
+export async function createContract(req, res, next) {
+  try {
+    const contract = await Contract.create({ ...req.body });
+    res.json(contract);
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function deployContract(req, res, next) {
   try {
     const { contractHash } = req.body;
-    const result = await queueDeployment(contractHash, req.user);
-    res.status(202).json({
-      ok: true,
-      signature: result.signature,
-      queuedAt: result.queuedAt,
-    });
+    const ctr = await Contract.findOne({ contractHash });
+    if (!ctr) return res.status(404).json({ message: "Contract not found" });
+
+    const { signature } = await queueDeployment(contractHash);
+    ctr.signature = signature;
+    ctr.status = "deployed";
+    await ctr.save();
+
+    res.json({ signature });
   } catch (e) {
     next(e);
   }
-};
+}
