@@ -15,6 +15,7 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Navbar from "./components/Navbar.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 import SecretPopup from "./components/SecretPopup.jsx";
+import SmartContractSetup from "./pages/SmartContractSetup.jsx";
 
 export default function App() {
   const { user } = useAuth();
@@ -98,6 +99,7 @@ export default function App() {
         <Route path="/help" element={<Help />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/smartcontract" element={<SmartContractSetup />} />
       </Routes>
       <Footer />
     </Router>
