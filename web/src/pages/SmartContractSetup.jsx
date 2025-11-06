@@ -26,6 +26,7 @@ export default function SmartContractPage() {
   const [step, setStep] = useState("form");
   const [contractHash, setContractHash] = useState("");
   const [agree, setAgree] = useState(false);
+  const [agreeError, setAgreeError] = useState(false);
   const [signature, setSignature] = useState("");
   const [deploying, setDeploying] = useState(false);
 
@@ -90,6 +91,10 @@ export default function SmartContractPage() {
   };
 
   const handleSignAndDeploy = async () => {
+    if (!agree) {
+      setAgreeError(true);
+      return;
+    }
     const payload = {
       template,
       sender,
@@ -191,7 +196,7 @@ export default function SmartContractPage() {
 
       {/* POPUP FORM */}
       {showPopup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-3">
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-3">
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -271,7 +276,7 @@ export default function SmartContractPage() {
                   </div>
 
                   {/* Options */}
-                  <div className="flex justify-between">
+                  {/* <div className="flex justify-between">
                     <label className="flex items-center gap-2">
                       <input
                         type="checkbox"
@@ -291,7 +296,7 @@ export default function SmartContractPage() {
                       />
                       Guardian Approval
                     </label>
-                  </div>
+                  </div> */}
 
                   {/* Buttons */}
                   <div className="grid grid-cols-2 gap-3">
@@ -345,11 +350,20 @@ export default function SmartContractPage() {
                   <input
                     type="checkbox"
                     checked={agree}
-                    onChange={(e) => setAgree(e.target.checked)}
+                    onChange={(e) => {
+                      setAgree(e.target.checked);
+                      setAgreeError(false);
+                    }}
                     className="accent-emerald-600"
                   />
                   <span>I agree to sign and deploy this contract</span>
                 </div>
+                {agreeError && !agree && (
+                  <p className="text-red-500 text-sm mt-1">
+                    You must agree before signing and deploying.
+                  </p>
+                )}
+
                 <div className="grid grid-cols-2 gap-3 mt-4">
                   <button
                     onClick={() => setStep("form")}
@@ -359,11 +373,11 @@ export default function SmartContractPage() {
                   </button>
                   <button
                     onClick={handleSignAndDeploy}
-                    disabled={!agree || deploying}
-                    className={`py-2 rounded text-white ${
+                    disabled={deploying}
+                    className={`py-2 rounded hover:cursor-pointer text-white ${
                       agree
                         ? "bg-emerald-600 hover:bg-emerald-700"
-                        : "bg-emerald-400 cursor-not-allowed"
+                        : "bg-emerald-400"
                     }`}
                   >
                     {deploying ? "Deploying..." : "Sign & Deploy"}
