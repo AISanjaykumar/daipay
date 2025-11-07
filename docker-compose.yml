@@ -10,6 +10,10 @@ services:
     environment:
       - MONGO_URL=mongodb://mongo:27017/daipay
       - PORT=8080
+      - MAIL_USER=support@aiclone.me
+      - MAIL_PASS=Puneri2
+      - JWT_SECRET=harshpatel
+      - APP_SECRET=B4SaCTNgthWQwfWXsogPP1TkoGWFDjUbizaQMSrUypyZ
     depends_on: [mongo]
     ports: ["8080:8080"]
 
@@ -17,6 +21,8 @@ services:
     build: ./web
     environment:
       - VITE_API_BASE=http://localhost:8080/v1
+      - VITE_APP_SECRET_KEY=H8mE2PtEmvBknpWk6p62qWajFAuB7tE2nZ7c9NcFZDe1
+      - VITE_APP_SECRET=B4SaCTNgthWQwfWXsogPP1TkoGWFDjUbizaQMSrUypyZ
     depends_on: [api]
     ports: ["5173:5173"]
 
