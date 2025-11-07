@@ -1,6 +1,7 @@
 // controller/contracts.controller.js
 import Contract from "../db/models/Contract.js";
 import { queueDeployment } from "../services/contracts.service.js";
+import { credit, debit } from "../services/wallet.service.js";
 
 export async function getContracts(req, res, next) {
   try {
@@ -25,6 +26,9 @@ export async function deployContract(req, res, next) {
     const { contractHash } = req.body;
     const ctr = await Contract.findOne({ contractHash });
     if (!ctr) return res.status(404).json({ message: "Contract not found" });
+
+    await debit(ctr.sender, ctr.amount, `Debit fee for contract`);
+    await credit(ctr.receiver, ctr.amount, `Credit for contract`);
 
     const { signature } = await queueDeployment(contractHash);
     ctr.signature = signature;
