@@ -1,21 +1,24 @@
 import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Payments from "./pages/Payments.jsx";
-import Wallets from "./pages/Wallets.jsx";
+
+import Home from "./pages/Home.jsx";
+import Help from "./pages/Help.jsx";
+import Login from "./pages/Login.jsx";
+import About from "./pages/About.jsx";
+import Signup from "./pages/Signup.jsx";
 import Blocks from "./pages/Blocks.jsx";
+import Wallets from "./pages/Wallets.jsx";
 import Escrows from "./pages/Escrows.jsx";
 import Anchors from "./pages/Anchors.jsx";
-import Home from "./pages/Home.jsx";
-import About from "./pages/About.jsx";
-import Help from "./pages/Help.jsx";
-import Footer from "./components/Footer.jsx";
-import Signup from "./pages/Signup.jsx";
-import Login from "./pages/Login.jsx";
-import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import Navbar from "./components/Navbar.jsx";
-import { useAuth } from "./context/AuthContext.jsx";
-import SecretPopup from "./components/SecretPopup.jsx";
+import Payments from "./pages/Payments.jsx";
 import SmartContract from "./pages/SmartContract.jsx";
+
+import { useAuth } from "./context/AuthContext.jsx";
+
+import Footer from "./components/Footer.jsx";
+import Navbar from "./components/Navbar.jsx";
+import SecretPopup from "./components/SecretPopup.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 export default function App() {
   const { user } = useAuth();
@@ -36,6 +39,7 @@ export default function App() {
     { key: "payments", label: "Payments" },
     { key: "wallets", label: "Wallets" },
     { key: "escrows", label: "Escrows" },
+    { key: "smartcontract", label: "Smart Contract" },
     { key: "anchors", label: "Anchors" },
     { key: "blocks", label: "Blocks" },
   ];
@@ -74,6 +78,7 @@ export default function App() {
         {tab === "escrows" && <Escrows />}
         {tab === "anchors" && <Anchors />}
         {tab === "blocks" && <Blocks />}
+        {tab === "smartcontract" && <SmartContract />}
       </main>
 
       {showSecretPopup && (
@@ -99,7 +104,6 @@ export default function App() {
         <Route path="/help" element={<Help />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/smartcontract" element={<SmartContract />} />
       </Routes>
       <Footer />
     </Router>

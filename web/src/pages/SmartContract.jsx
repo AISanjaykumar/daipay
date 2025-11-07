@@ -41,9 +41,9 @@ export default function SmartContract() {
     const base = `Release $${amount || "?"} from ${
       user?.wallet?.wallet_id || "sender"
     } to ${receiver || "receiver"}`;
-    if (template === "escrow") return base + " when both parties confirm delivery.";
-    if (template === "scheduled")
-      return base + " on scheduled date and time.";
+    if (template === "escrow")
+      return base + " when both parties confirm delivery.";
+    if (template === "scheduled") return base + " on scheduled date and time.";
     return base;
   }
 
@@ -144,7 +144,7 @@ export default function SmartContract() {
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="bg-white w-full rounded-2xl shadow-xl p-6 relative"
+        className="bg-white w-full rounded-2xl p-6 relative"
       >
         <h2 className="text-2xl font-semibold text-center text-amber-600 mb-5">
           Create Smart Contract
@@ -317,7 +317,10 @@ export default function SmartContract() {
                           </span>
                         </div>
                         <p className="text-sm font-semibold text-gray-800 mt-2">
-                          Amount: <span className="font-bold text-md text-green-500">{ctr.amount} μDAI</span>
+                          Amount:{" "}
+                          <span className="font-bold text-md text-green-500">
+                            {ctr.amount} μDAI
+                          </span>
                         </p>
                         <p className="text-sm text-gray-700 mt-2 break-words">
                           <strong>Sender:</strong> {ctr.sender}
