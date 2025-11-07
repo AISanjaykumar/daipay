@@ -16,6 +16,9 @@ const contractSchema = new mongoose.Schema(
     summary: { type: String, required: true },
     contractHash: { type: String, required: true, unique: true },
     signature: { type: String },
+    senderAccepted: { type: Boolean, default: false },
+    receiverAccepted: { type: Boolean, default: false },
+    deploy_time: { type: Date, default: null },
     status: { type: String, enum: ["pending", "deployed"], default: "pending" },
   },
   { timestamps: true }

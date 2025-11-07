@@ -40,3 +40,43 @@ export async function deployContract(req, res, next) {
     next(e);
   }
 }
+
+export async function acceptContract(req, res, next) {
+  try {
+    const { wallet_id, contractHash } = req.body;
+
+    if (!wallet_id) return res.status(400).json({ message: "wallet_id required" });
+
+    const ctr = await Contract.findOne({ contractHash });
+    if (!ctr) return res.status(404).json({ message: "Contract not found" });
+
+    let modified = false;
+    if (ctr.sender === wallet_id && !ctr.senderAccepted) {
+      ctr.senderAccepted = true;
+      modified = true;
+    }
+    if (ctr.receiver === wallet_id && !ctr.receiverAccepted) {
+      ctr.receiverAccepted = true;
+      modified = true;
+    }
+
+    if (!modified) return res.json({ message: "Already accepted or not a party" });
+
+    // If both accepted now, set deploy_time depending on trigger and possibly queue
+    if (ctr.senderAccepted && ctr.receiverAccepted) {
+      if (ctr.trigger === "24h") {
+        ctr.deploy_time = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
+      } else if (ctr.trigger === "auto") {
+        // set 48 hr and queue it
+        ctr.deploy_time = new Date(Date.now() + 48 * 3600 * 1000).toISOString();
+        await ctr.save();
+        return res.json({ message: "Accepted and queued for auto deployment", contract: ctr });
+      }
+    }
+
+    await ctr.save();
+    res.json({ message: "Accepted", contract: ctr });
+  } catch (e) {
+    next(e);
+  }
+}

@@ -17,6 +17,7 @@ import health from "./routes/health.route.js";
 import { errorHandler } from "./middleware/error.js";
 import { sealBlock } from "./services/ledger.service.js";
 import { verifyAppAccess } from "./middleware/verifyAppAccess.js";
+import { initCronJobs } from "./services/cron.service.js";
 
 dotenv.config();
 
@@ -34,6 +35,9 @@ app.use(helmet());
 app.use(cookieParser());
 
 app.use(verifyAppAccess);
+
+// cron jobs
+initCronJobs();
 
 app.use("/v1/mail", mail);
 app.use("/v1/auth", auth);

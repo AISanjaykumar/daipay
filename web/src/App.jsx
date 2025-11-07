@@ -15,7 +15,7 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import Navbar from "./components/Navbar.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 import SecretPopup from "./components/SecretPopup.jsx";
-import SmartContractSetup from "./pages/SmartContractSetup.jsx";
+import SmartContract from "./pages/SmartContract.jsx";
 
 export default function App() {
   const { user } = useAuth();
@@ -41,7 +41,7 @@ export default function App() {
   ];
 
   const Dashboard = () => (
-    <div className="font-sans max-w-5xl mx-auto mt-10 px-5">
+    <div className="font-sans max-w-5xl mx-auto mt-10 px-5 ">
       {/* Header */}
       <header className="text-center mb-7">
         <h1 className="text-3xl font-bold text-gray-900">⚡ DAIPay™ MVP</h1>
@@ -99,7 +99,7 @@ export default function App() {
         <Route path="/help" element={<Help />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/smartcontract" element={<SmartContractSetup />} />
+        <Route path="/smartcontract" element={<SmartContract />} />
       </Routes>
       <Footer />
     </Router>
