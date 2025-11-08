@@ -1,7 +1,10 @@
 // controller/contracts.controller.js
+import { h512 } from "../crypto/hash.js";
 import Contract from "../db/models/Contract.js";
-import { queueDeployment } from "../services/contracts.service.js";
+import { canonical } from "../crypto/canonical.js";
+import { appendReceipt } from "../services/ledger.service.js";
 import { credit, debit } from "../services/wallet.service.js";
+import { queueDeployment } from "../services/contracts.service.js";
 
 export async function getContracts(req, res, next) {
   try {
@@ -35,6 +38,18 @@ export async function deployContract(req, res, next) {
     ctr.status = "deployed";
     await ctr.save();
 
+    const c = canonical(ctr);
+
+    const digest = h512(c);
+
+    const contract_id = h512(`contract|${digest}|${ctr.contractHash}`);
+
+    await appendReceipt({
+      type: "smartcontract_deploy",
+      ref_id: contract_id,
+      timestamp: new Date(),
+    });
+
     res.json({ signature });
   } catch (e) {
     next(e);
@@ -45,7 +60,8 @@ export async function acceptContract(req, res, next) {
   try {
     const { wallet_id, contractHash } = req.body;
 
-    if (!wallet_id) return res.status(400).json({ message: "wallet_id required" });
+    if (!wallet_id)
+      return res.status(400).json({ message: "wallet_id required" });
 
     const ctr = await Contract.findOne({ contractHash });
     if (!ctr) return res.status(404).json({ message: "Contract not found" });
@@ -60,7 +76,8 @@ export async function acceptContract(req, res, next) {
       modified = true;
     }
 
-    if (!modified) return res.json({ message: "Already accepted or not a party" });
+    if (!modified)
+      return res.json({ message: "Already accepted or not a party" });
 
     // If both accepted now, set deploy_time depending on trigger and possibly queue
     if (ctr.senderAccepted && ctr.receiverAccepted) {
@@ -70,7 +87,10 @@ export async function acceptContract(req, res, next) {
         // set 48 hr and queue it
         ctr.deploy_time = new Date(Date.now() + 48 * 3600 * 1000).toISOString();
         await ctr.save();
-        return res.json({ message: "Accepted and queued for auto deployment", contract: ctr });
+        return res.json({
+          message: "Accepted and queued for auto deployment",
+          contract: ctr,
+        });
       }
     }
 

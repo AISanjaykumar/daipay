@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { FaClock, FaCogs } from "react-icons/fa";
+import { PiSpinnerGapBold } from "react-icons/pi";
+import { motion, AnimatePresence } from "framer-motion";
+
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 
 export default function SmartContract() {
   const { user } = useAuth();
+
   const [contracts, setContracts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -117,6 +120,7 @@ export default function SmartContract() {
 
   // Deploy Contract
   async function handleDeploy(contractHash) {
+    setDeploying(true);
     try {
       await api("/contracts/deploy", {
         method: "POST",
@@ -125,6 +129,8 @@ export default function SmartContract() {
       loadContracts();
     } catch (err) {
       console.error("Deploy failed:", err);
+    } finally {
+      setDeploying(false);
     }
   }
 
@@ -341,10 +347,21 @@ export default function SmartContract() {
                             ctr.sender === user.wallet.wallet_id &&
                             ctr.template === "escrow" ? (
                               <button
+                                disabled={deploying}
                                 onClick={() => handleDeploy(ctr.contractHash)}
-                                className="bg-indigo-500 hover:bg-indigo-400 text-gray-50 transition-all duration-300  px-4 py-1 rounded-lg text-sm drop-shadow-md"
+                                className="bg-indigo-500 hover:bg-indigo-400 text-gray-50 transition-all duration-300 px-4 py-1 rounded-lg text-sm drop-shadow-md hover:cursor-pointer"
                               >
-                                Deploy Contract
+                                {deploying ? (
+                                  <div className="flex items-center  gap-1 ">
+                                    <PiSpinnerGapBold
+                                      size={20}
+                                      className="animate-spin"
+                                    />
+                                    Deploying..
+                                  </div>
+                                ) : (
+                                  "Deploy Contract"
+                                )}
                               </button>
                             ) : (
                               <p className="text-sm text-green-600 font-semibold">
