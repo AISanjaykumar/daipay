@@ -23,6 +23,11 @@ export default function SmartContract() {
   const [signature, setSignature] = useState("");
   const [deploying, setDeploying] = useState(false);
 
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const limit = 5;
+
   // Load contracts on mount
   useEffect(() => {
     loadContracts();
@@ -31,10 +36,19 @@ export default function SmartContract() {
   async function loadContracts() {
     try {
       setLoading(true);
-      const data = await api("/contracts");
-      setContracts(data);
+      const data = await api(
+        `/contracts?wallet_id=${user.wallet.wallet_id}&page=${page}&limit=${limit}`
+      );
+
+      if (data.success) {
+        setContracts(data.items || []);
+        setTotal(data.total || 0);
+      } else {
+        toast.error("Failed to load contracts");
+      }
     } catch (err) {
       console.error("Error loading contracts:", err);
+      toast.error("Error loading contracts");
     } finally {
       setLoading(false);
     }
@@ -276,151 +290,182 @@ export default function SmartContract() {
             No smart contracts yet.
           </p>
         ) : (
-          <AnimatePresence>
-            <div className="space-y-4 h-[80vh] overflow-y-auto hide-scroll">
-              {contracts.map((ctr) => {
-                const isSender = ctr.sender === user.wallet.wallet_id;
-                const senderAccepted = ctr.senderAccepted;
-                const receiverAccepted = ctr.receiverAccepted;
-                const bothAccepted = senderAccepted && receiverAccepted;
+          <>
+            <AnimatePresence>
+              <div className="space-y-4 h-[80vh] overflow-y-auto hide-scroll">
+                {contracts.map((ctr) => {
+                  const isSender = ctr.sender === user.wallet.wallet_id;
+                  const senderAccepted = ctr.senderAccepted;
+                  const receiverAccepted = ctr.receiverAccepted;
+                  const bothAccepted = senderAccepted && receiverAccepted;
 
-                return (
-                  <motion.div
-                    key={ctr._id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className={`border border-gray-200 rounded-xl p-5 bg-white hover:bg-gradient-to-br from-white to-white drop-shadow-lg transition-all ${
-                      ctr.template === "escrow"
-                        ? "via-amber-50/50"
-                        : "via-blue-50/60"
-                    }`}
-                  >
-                    <div className="flex flex-col md:justify-between gap-3 w-full">
-                      <div className="w-full">
-                        <div className="flex items-center gap-2 w-full relative">
-                          <p
-                            className={`px-3 py-1 rounded-md drop-shadow-md text-xs font-semibold ${
-                              ctr.template === "escrow"
-                                ? "bg-white text-amber-700"
-                                : "bg-blue-100 text-blue-700"
-                            }`}
-                          >
-                            Contract Type :{" "}
-                            <span className="font-bold">
-                              {ctr.template.toUpperCase()}
+                  return (
+                    <motion.div
+                      key={ctr._id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className={`border border-gray-200 rounded-xl p-5 bg-white hover:bg-gradient-to-br from-white to-white drop-shadow-lg transition-all ${
+                        ctr.template === "escrow"
+                          ? "via-amber-50/50"
+                          : "via-blue-50/60"
+                      }`}
+                    >
+                      <div className="flex flex-col md:justify-between gap-3 w-full">
+                        <div className="w-full">
+                          <div className="flex items-center gap-2 w-full relative">
+                            <p
+                              className={`px-3 py-1 rounded-md drop-shadow-md text-xs font-semibold ${
+                                ctr.template === "escrow"
+                                  ? "bg-white text-amber-700"
+                                  : "bg-blue-100 text-blue-700"
+                              }`}
+                            >
+                              Contract Type :{" "}
+                              <span className="font-bold">
+                                {ctr.template.toUpperCase()}
+                              </span>
+                            </p>
+                            <span
+                              className={`px-3 py-1 absolute drop-shadow-md capitalize right-4 rounded-full text-xs font-semibold ${
+                                ctr.status === "deployed"
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-yellow-100 text-yellow-700"
+                              }`}
+                            >
+                              {ctr.status.charAt(0).toUpperCase() +
+                                ctr.status.slice(1) || "Pending"}
+                            </span>
+                          </div>
+                          <p className="text-sm font-semibold text-gray-800 mt-2">
+                            Amount:{" "}
+                            <span className="font-bold text-md text-green-500">
+                              {ctr.amount} μDAI
                             </span>
                           </p>
-                          <span
-                            className={`px-3 py-1 absolute drop-shadow-md capitalize right-4 rounded-full text-xs font-semibold ${
-                              ctr.status === "deployed"
-                                ? "bg-green-100 text-green-700"
-                                : "bg-yellow-100 text-yellow-700"
-                            }`}
-                          >
-                            {ctr.status.charAt(0).toUpperCase() +
-                              ctr.status.slice(1) || "Pending"}
-                          </span>
+                          <p className="text-sm text-gray-700 mt-2 break-words">
+                            <strong>Sender:</strong> {ctr.sender}
+                          </p>
+                          <p className="text-sm text-gray-700 break-words">
+                            <strong>Receiver:</strong> {ctr.receiver}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1 break-all">
+                            Hash: <code>{ctr.contractHash}</code>
+                          </p>
                         </div>
-                        <p className="text-sm font-semibold text-gray-800 mt-2">
-                          Amount:{" "}
-                          <span className="font-bold text-md text-green-500">
-                            {ctr.amount} μDAI
-                          </span>
-                        </p>
-                        <p className="text-sm text-gray-700 mt-2 break-words">
-                          <strong>Sender:</strong> {ctr.sender}
-                        </p>
-                        <p className="text-sm text-gray-700 break-words">
-                          <strong>Receiver:</strong> {ctr.receiver}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1 break-all">
-                          Hash: <code>{ctr.contractHash}</code>
-                        </p>
-                      </div>
 
-                      {/* ✅ Accept / Deploy logic */}
-                      <div className="text-right space-y-2">
-                        {bothAccepted && ctr.status !== "deployed" ? (
-                          <>
-                            {ctr.trigger === "approval" &&
-                            ctr.sender === user.wallet.wallet_id &&
-                            ctr.template === "escrow" ? (
-                              <button
-                                disabled={deploying}
-                                onClick={() => handleDeploy(ctr.contractHash)}
-                                className="bg-indigo-500 hover:bg-indigo-400 text-gray-50 transition-all duration-300 px-4 py-1 rounded-lg text-sm drop-shadow-md hover:cursor-pointer"
-                              >
-                                {deploying ? (
-                                  <div className="flex items-center  gap-1 ">
-                                    <PiSpinnerGapBold
-                                      size={20}
-                                      className="animate-spin"
-                                    />
-                                    Deploying..
-                                  </div>
-                                ) : (
-                                  "Deploy Contract"
-                                )}
-                              </button>
-                            ) : (
-                              <p className="text-sm text-green-600 font-semibold">
-                                {`Scheduled for Deployment at ${new Date(
-                                  ctr.deploy_time
-                                ).toLocaleString()}`}
-                              </p>
-                            )}
-                            {ctr.trigger === "24h" && (
-                              <span className="flex items-center gap-1 text-amber-700 text-sm justify-end">
-                                <FaClock /> {timeLeft(ctr.createdAt)}
-                              </span>
-                            )}
-                            {ctr.trigger === "auto" && (
-                              <span className="flex items-center gap-1 text-gray-600 text-sm justify-end">
-                                <FaCogs /> Auto Deploy
-                              </span>
-                            )}
-                          </>
-                        ) : (
-                          ctr.status !== "deployed" && (
+                        {/* ✅ Accept / Deploy logic */}
+                        <div className="text-right space-y-2">
+                          {bothAccepted && ctr.status !== "deployed" ? (
                             <>
-                              {/* Accept button */}
-                              {!(
-                                (isSender && senderAccepted) ||
-                                (!isSender && receiverAccepted)
-                              ) && (
+                              {ctr.trigger === "approval" &&
+                              ctr.sender === user.wallet.wallet_id &&
+                              ctr.template === "escrow" ? (
                                 <button
-                                  onClick={() => handleAccept(ctr.contractHash)}
-                                  className="bg-emerald-500 hover:bg-emerald-400 text-white px-4 py-1 rounded-lg text-sm"
+                                  disabled={deploying}
+                                  onClick={() => handleDeploy(ctr.contractHash)}
+                                  className="bg-indigo-500 hover:bg-indigo-400 text-gray-50 transition-all duration-300 px-4 py-1 rounded-lg text-sm drop-shadow-md hover:cursor-pointer"
                                 >
-                                  Accept Contract
+                                  {deploying ? (
+                                    <div className="flex items-center  gap-1 ">
+                                      <PiSpinnerGapBold
+                                        size={20}
+                                        className="animate-spin"
+                                      />
+                                      Deploying..
+                                    </div>
+                                  ) : (
+                                    "Deploy Contract"
+                                  )}
                                 </button>
+                              ) : (
+                                <p className="text-sm text-green-600 font-semibold">
+                                  {`Scheduled for Deployment at ${new Date(
+                                    ctr.deploy_time
+                                  ).toLocaleString()}`}
+                                </p>
                               )}
-                              {/* Waiting states */}
-                              {isSender &&
-                                senderAccepted &&
-                                !receiverAccepted && (
-                                  <p className="text-sm text-gray-600">
-                                    Waiting for Receiver to Accept...
-                                  </p>
-                                )}
-                              {!isSender &&
-                                receiverAccepted &&
-                                !senderAccepted && (
-                                  <p className="text-sm text-gray-600">
-                                    Waiting for Sender to Accept...
-                                  </p>
-                                )}
+                              {ctr.trigger === "24h" && (
+                                <span className="flex items-center gap-1 text-amber-700 text-sm justify-end">
+                                  <FaClock /> {timeLeft(ctr.createdAt)}
+                                </span>
+                              )}
+                              {ctr.trigger === "auto" && (
+                                <span className="flex items-center gap-1 text-gray-600 text-sm justify-end">
+                                  <FaCogs /> Auto Deploy
+                                </span>
+                              )}
                             </>
-                          )
-                        )}
+                          ) : (
+                            ctr.status !== "deployed" && (
+                              <>
+                                {/* Accept button */}
+                                {!(
+                                  (isSender && senderAccepted) ||
+                                  (!isSender && receiverAccepted)
+                                ) && (
+                                  <button
+                                    onClick={() =>
+                                      handleAccept(ctr.contractHash)
+                                    }
+                                    className="bg-emerald-500 hover:bg-emerald-400 text-white px-4 py-1 rounded-lg text-sm"
+                                  >
+                                    Accept Contract
+                                  </button>
+                                )}
+                                {/* Waiting states */}
+                                {isSender &&
+                                  senderAccepted &&
+                                  !receiverAccepted && (
+                                    <p className="text-sm text-gray-600">
+                                      Waiting for Receiver to Accept...
+                                    </p>
+                                  )}
+                                {!isSender &&
+                                  receiverAccepted &&
+                                  !senderAccepted && (
+                                    <p className="text-sm text-gray-600">
+                                      Waiting for Sender to Accept...
+                                    </p>
+                                  )}
+                              </>
+                            )
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </AnimatePresence>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </AnimatePresence>
+
+            {/* Pagination controls */}
+            <motion.div
+              className="flex justify-center mt-6 gap-3 flex-wrap"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-4 py-2 border rounded-lg text-sm font-medium hover:bg-gray-100 disabled:opacity-50"
+              >
+                Prev
+              </button>
+              <span className="text-sm text-gray-600 flex items-center">
+                Page {page} / {Math.ceil(total / limit) || 1}
+              </span>
+              <button
+                onClick={() =>
+                  setPage((p) => (p < Math.ceil(total / limit) ? p + 1 : p))
+                }
+                disabled={page >= Math.ceil(total / limit)}
+                className="px-4 py-2 border rounded-lg text-sm font-medium hover:bg-gray-100 disabled:opacity-50"
+              >
+                Next
+              </button>
+            </motion.div>
+          </>
         )}
       </motion.div>
     </div>

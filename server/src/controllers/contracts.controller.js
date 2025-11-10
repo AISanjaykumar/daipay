@@ -8,8 +8,35 @@ import { queueDeployment } from "../services/contracts.service.js";
 
 export async function getContracts(req, res, next) {
   try {
-    const contracts = await Contract.find().sort({ createdAt: -1 });
-    res.json(contracts);
+    const walletId = req.query.wallet_id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    if (!walletId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "wallet_id required" });
+    }
+
+    const filter = {
+      $or: [{ sender: walletId }, { receiver: walletId }],
+    };
+
+    const total = await Contract.countDocuments(filter);
+    const contracts = await Contract.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      success: true,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      count: contracts.length,
+      items: contracts,
+    });
   } catch (e) {
     next(e);
   }
