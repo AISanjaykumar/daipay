@@ -31,7 +31,7 @@ export default function SmartContract() {
   // Load contracts on mount
   useEffect(() => {
     loadContracts();
-  }, []);
+  }, [page]);
 
   async function loadContracts() {
     try {
@@ -379,11 +379,13 @@ export default function SmartContract() {
                                   )}
                                 </button>
                               ) : (
-                                <p className="text-sm text-green-600 font-semibold">
-                                  {`Scheduled for Deployment at ${new Date(
-                                    ctr.deploy_time
-                                  ).toLocaleString()}`}
-                                </p>
+                                ctr.deploy_time && (
+                                  <p className="text-sm text-green-600 font-semibold">
+                                    {`Scheduled for Deployment at ${new Date(
+                                      ctr.deploy_time
+                                    ).toLocaleString()}`}
+                                  </p>
+                                )
                               )}
                               {ctr.trigger === "24h" && (
                                 <span className="flex items-center gap-1 text-amber-700 text-sm justify-end">
