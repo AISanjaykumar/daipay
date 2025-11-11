@@ -17,7 +17,8 @@ import health from "./routes/health.route.js";
 import { errorHandler } from "./middleware/error.js";
 import { sealBlock } from "./services/ledger.service.js";
 import { verifyAppAccess } from "./middleware/verifyAppAccess.js";
-import { initCronJobs } from "./services/cron.service.js";
+import { startSmartContractCron } from "./cron/smartcontract.cron.js";
+import { startAnchorCron } from "./cron/anchor.cron.js";
 
 dotenv.config();
 
@@ -37,7 +38,8 @@ app.use(cookieParser());
 app.use(verifyAppAccess);
 
 // cron jobs
-initCronJobs();
+startAnchorCron();
+startSmartContractCron();
 
 app.use("/v1/mail", mail);
 app.use("/v1/auth", auth);

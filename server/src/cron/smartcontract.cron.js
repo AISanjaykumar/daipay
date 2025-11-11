@@ -1,14 +1,14 @@
 import cron from "node-cron";
 
-import { h512 } from "../crypto/hash.js";
 import Contract from "../db/models/Contract.js";
+import { queueDeployment } from "../services/contracts.service.js";
 import { canonical } from "../crypto/canonical.js";
-import { credit, debit } from "./wallet.service.js";
-import { appendReceipt } from "./ledger.service.js";
-import { queueDeployment } from "./contracts.service.js";
+import { h512 } from "../crypto/hash.js";
+import { appendReceipt } from "../services/ledger.service.js";
 
-export function initCronJobs() {
-  console.log("✅ Cron service initialized.");
+
+export function startSmartContractCron() {
+  console.log("⏱️ Smart Contract cron job initialized (runs every hour)");
 
   // Run every minute
   cron.schedule("0 * * * *", async () => {
