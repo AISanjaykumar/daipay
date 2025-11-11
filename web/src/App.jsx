@@ -35,17 +35,19 @@ export default function App() {
     setShowSecretPopup(false);
   };
 
+  const isDev = import.meta.env.MODE === "development";
+
   const tabs = [
     { key: "payments", label: "Payments" },
     { key: "wallets", label: "Wallets" },
     { key: "escrows", label: "Escrows" },
     { key: "smartcontract", label: "Smart Contract" },
-    { key: "anchors", label: "Anchors" },
+    ...(isDev ? [{ key: "anchors", label: "Anchors" }] : []),
     { key: "blocks", label: "Blocks" },
   ];
 
   const Dashboard = () => (
-    <div className="font-sans max-w-5xl mx-auto mt-10 px-5 ">
+    <div className="font-sans max-w-5xl mx-auto mt-10 px-5">
       {/* Header */}
       <header className="text-center mb-7">
         <h1 className="text-3xl font-bold text-gray-900">⚡ DAIPay™ MVP</h1>
@@ -76,7 +78,7 @@ export default function App() {
         {tab === "payments" && <Payments />}
         {tab === "wallets" && <Wallets />}
         {tab === "escrows" && <Escrows />}
-        {tab === "anchors" && <Anchors />}
+        {isDev && tab === "anchors" && <Anchors />}
         {tab === "blocks" && <Blocks />}
         {tab === "smartcontract" && <SmartContract />}
       </main>

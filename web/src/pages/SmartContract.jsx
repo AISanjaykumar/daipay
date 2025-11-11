@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "react-hot-toast";
 import { FaClock, FaCogs } from "react-icons/fa";
 import { PiSpinnerGapBold } from "react-icons/pi";
 import { motion, AnimatePresence } from "framer-motion";
@@ -20,7 +21,6 @@ export default function SmartContract() {
   const [deployTime, setDeployTime] = useState("");
   const [step, setStep] = useState("form");
   const [contractHash, setContractHash] = useState("");
-  const [signature, setSignature] = useState("");
   const [deploying, setDeploying] = useState(false);
 
   // Pagination
