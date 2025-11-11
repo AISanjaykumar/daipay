@@ -11,7 +11,7 @@ export function initCronJobs() {
   console.log("✅ Cron service initialized.");
 
   // Run every minute
-  cron.schedule("* * * * *", async () => {
+  cron.schedule("0 * * * *", async () => {
     console.log("⏱️ Running scheduled contract deployment check...");
     const now = new Date().toISOString();
 
