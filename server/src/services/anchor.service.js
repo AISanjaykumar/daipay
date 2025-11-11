@@ -8,16 +8,22 @@ import { h512 } from "../crypto/hash.js";
  * - Skips already anchored ranges
  * - Automatically starts after the last anchor
  */
-export async function anchorBlocks({ fromHeight, toHeight, chain = "ethereum" } = {}) {
+export async function anchorBlocks({
+  fromHeight,
+  toHeight,
+  chain = "ethereum",
+} = {}) {
   // Get the latest block height
   const latestBlock = await Block.findOne().sort({ height: -1 }).lean();
   if (!latestBlock) return { message: "no_blocks_in_chain" };
 
   // Get last sealed anchor
-  const latestAnchor = await Anchor.findOne().sort({ block_height_to: -1 }).lean();
+  const latestAnchor = await Anchor.findOne()
+    .sort({ block_height_to: -1 })
+    .lean();
 
   // Determine batch range
-  const from = fromHeight ?? ((latestAnchor?.block_height_to || 0) + 1);
+  const from = fromHeight ?? (latestAnchor?.block_height_to || 0) + 1;
   const to = toHeight ?? latestBlock.height;
 
   if (to < from) {
@@ -34,30 +40,34 @@ export async function anchorBlocks({ fromHeight, toHeight, chain = "ethereum" } 
   }
 
   // 🔒 Filter only blocks with valid roots
-  const validBlocks = blocks.filter(b => b?.root && typeof b.root === "string");
+  const validBlocks = blocks.filter(
+    (b) => b?.root && typeof b.root === "string"
+  );
   if (!validBlocks.length) {
     return { message: "no_valid_block_roots" };
   }
 
   // 🧮 1️⃣ Compute Merkle root (concatenated roots)
-  const concatRoots = validBlocks.map(b => b.root).join("");
+  const concatRoots = validBlocks.map((b) => b.root).join("");
   const merkle_root = h512(concatRoots);
 
   // 🧩 2️⃣ Compute tamper-proof tx_hash (full block data)
   const serializedBlocks = validBlocks
-    .map(b => JSON.stringify(b, Object.keys(b).sort()))
+    .map((b) => JSON.stringify(b, Object.keys(b).sort()))
     .join("|");
   const tx_hash = h512(serializedBlocks);
 
   // 🆔 3️⃣ Generate deterministic anchor_id
-  const anchor_id = h512(JSON.stringify({ chain, from, to, merkle_root, tx_hash }));
+  const anchor_id = h512(
+    JSON.stringify({ chain, from, to, merkle_root, tx_hash })
+  );
 
   // 🧾 4️⃣ Prevent duplicates
   const exists = await Anchor.findOne({ anchor_id }).lean();
   if (exists) return { message: "already_anchored", anchor_id };
 
   // 🔗 5️⃣ Store block references (ObjectIds)
-  const blockRefs = validBlocks.map(b => b._id);
+  const blockRefs = validBlocks.map((b) => b._id);
 
   // 💾 6️⃣ Save new anchor
   await Anchor.create({
@@ -70,7 +80,9 @@ export async function anchorBlocks({ fromHeight, toHeight, chain = "ethereum" } 
     tx_hash,
   });
 
-  console.log(`✅ Anchor created for blocks ${from} → ${to} (${blockRefs.length} blocks)`);
+  console.log(
+    `✅ Anchor created for blocks ${from} → ${to} (${blockRefs.length} blocks)`
+  );
 
   return {
     message: "anchor_created",
@@ -84,7 +96,12 @@ export async function anchorBlocks({ fromHeight, toHeight, chain = "ethereum" } 
   };
 }
 
-/** List anchors with limit */
-export async function listAnchors(limit = 20) {
-  return Anchor.find().sort({ created_at: -1 }).limit(limit).lean();
+export async function listAnchors(page = 1, limit = 10) {
+  const skip = (page - 1) * limit;
+  const [items, total] = await Promise.all([
+    Anchor.find().sort({ created_at: -1 }).skip(skip).limit(limit).lean(),
+    Anchor.countDocuments(),
+  ]);
+
+  return { items, total };
 }

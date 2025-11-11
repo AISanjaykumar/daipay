@@ -6,10 +6,13 @@ export default function Anchors() {
   const [fromHeight, setFromHeight] = useState("");
   const [toHeight, setToHeight] = useState("");
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  async function load() {
-    const data = await api("/anchors");
+  async function load(p = 1) {
+    const data = await api(`/anchors?page=${p}&limit=10`);
     setItems(data.items || []);
+    setTotalPages(data.totalPages || 1);
   }
 
   async function run() {
@@ -33,8 +36,11 @@ export default function Anchors() {
   }
 
   useEffect(() => {
-    load();
-  }, []);
+    load(page);
+  }, [page]);
+
+  const handlePrev = () => setPage((p) => Math.max(1, p - 1));
+  const handleNext = () => setPage((p) => Math.min(totalPages, p + 1));
 
   return (
     <div className="min-h-screen p-6">
@@ -86,47 +92,66 @@ export default function Anchors() {
             No anchors found. Run one to get started.
           </p>
         ) : (
-          <div
-            style={{
-              overflowY: "scroll",
-              scrollbarWidth: "none", // Firefox
-              msOverflowStyle: "none", // Internet Explorer and Edge
-            }}
-            className="space-y-4 max-h-[400px] overflow-y-auto"
-          >
-            {items.map((a) => (
-              <div
-                key={a.anchor_id}
-                className="border border-gray-200 rounded-xl p-4 bg-gray-50 hover:shadow-md transition relative overflow-auto"
-              >
-                <span className="px-3 absolute drop-shadow-sm top-3 right-4 py-1 text-xs rounded-full bg-blue-100 text-blue-700">
-                  {a.chain}
-                </span>
-                <div className="flex justify-between items-center">
-                  <div className="text-sm text-gray-700">
-                    <b>ID:</b>{" "}
-                    <code className="text-blue-600 break-all">
-                      {a.anchor_id}
+          <>
+            <div className="space-y-4 max-h-[400px] overflow-y-auto hide-scroll">
+              {items.map((a) => (
+                <div
+                  key={a.anchor_id}
+                  className="border border-gray-200 rounded-xl p-4 bg-gray-50 hover:shadow-md transition relative overflow-auto"
+                >
+                  <span className="px-3 absolute drop-shadow-sm top-3 right-4 py-1 text-xs rounded-full bg-blue-100 text-blue-700">
+                    {a.chain}
+                  </span>
+                  <div className="flex justify-between items-center">
+                    <div className="text-sm text-gray-700">
+                      <b>ID:</b>{" "}
+                      <code className="text-blue-600 break-all">
+                        {a.anchor_id}
+                      </code>
+                    </div>
+                  </div>
+                  <div className="text-sm text-gray-700 mt-2">
+                    <b>Range:</b> {a.block_height_from} → {a.block_height_to}
+                  </div>
+                  <div className="text-sm text-gray-700 mt-1">
+                    <b>Merkle Root:</b>{" "}
+                    <code className="break-all text-gray-600">
+                      {a.merkle_root}
                     </code>
                   </div>
+                  <div className="text-sm text-gray-700 mt-1">
+                    <b>TX:</b>{" "}
+                    <code className="break-all text-gray-600">{a.tx_hash}</code>
+                  </div>
                 </div>
+              ))}
+            </div>
 
-                <div className="text-sm text-gray-700 mt-2">
-                  <b>Range:</b> {a.block_height_from} → {a.block_height_to}
-                </div>
-                <div className="text-sm text-gray-700 mt-1">
-                  <b>Merkle Root:</b>{" "}
-                  <code className="break-all text-gray-600">
-                    {a.merkle_root}
-                  </code>
-                </div>
-                <div className="text-sm text-gray-700 mt-1">
-                  <b>TX:</b>{" "}
-                  <code className="break-all text-gray-600">{a.tx_hash}</code>
-                </div>
-              </div>
-            ))}
-          </div>
+            {/* Pagination Controls */}
+            <div className="flex justify-center items-center gap-4 mt-6">
+              {page > 1 && (
+                <button
+                  onClick={handlePrev}
+                  disabled={page === 1}
+                  className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+                >
+                  ← Prev
+                </button>
+              )}
+              <span className="text-gray-700 font-medium">
+                Page {page} of {totalPages}
+              </span>
+              {page < totalPages && (
+                <button
+                  onClick={handleNext}
+                  disabled={page === totalPages}
+                  className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
+                >
+                  Next →
+                </button>
+              )}
+            </div>
+          </>
         )}
       </div>
     </div>
