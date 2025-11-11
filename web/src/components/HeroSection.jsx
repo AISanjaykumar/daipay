@@ -1,8 +1,9 @@
-// web/src/components/HeroSection.jsx
-import { ArrowRight, ShieldCheck, Zap } from "lucide-react";
 import { motion } from "framer-motion";
+import { ArrowRight, ShieldCheck, Zap } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 export default function HeroSection() {
+  const { user } = useAuth();
   return (
     <section className="bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white py-24 px-6 text-center">
       <motion.div
@@ -17,12 +18,13 @@ export default function HeroSection() {
 
         <p className="text-gray-300 text-lg mb-10 leading-relaxed">
           Send and verify payments with pure math — no miners, no consensus.
-          Instant, verifiable, and trustless on the DAIChain™ Proof-of-Exchange system.
+          Instant, verifiable, and trustless on the DAIChain™ Proof-of-Exchange
+          system.
         </p>
 
         <div className="flex justify-center gap-4">
           <a
-            href="/dashboard"
+            href={user ? "/dashboard" : "/login"}
             className="inline-flex items-center gap-2 bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-3 rounded-xl font-semibold transition"
           >
             Get Started <ArrowRight className="w-4 h-4" />
