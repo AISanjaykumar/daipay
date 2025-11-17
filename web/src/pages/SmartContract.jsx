@@ -235,7 +235,7 @@ export default function SmartContract() {
                       className="border-none outline-none text-3xl font-bold text-center text-green-600 w-fit bg-transparent"
                     />
                     <span className="text-xl font-bold text-gray-600">
-                      μDAI
+                      micros
                     </span>
                   </div>
                 </motion.div>
@@ -360,7 +360,7 @@ export default function SmartContract() {
                               <p className="text-sm font-semibold text-gray-800 mt-2">
                                 Amount:{" "}
                                 <span className="font-bold text-md text-green-500">
-                                  {ctr.amount} μDAI
+                                  {ctr.amount} micros
                                 </span>
                               </p>
                               <p className="text-sm text-gray-700 mt-2 break-words">

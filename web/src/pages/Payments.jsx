@@ -242,7 +242,7 @@ export default function Payments() {
             <input
               type="number"
               className="p-3 border border-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-              placeholder="Amount (μDAI)"
+              placeholder="Amount (micros)"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
             />

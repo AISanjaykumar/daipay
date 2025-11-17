@@ -14,7 +14,7 @@ export default function Help() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1, duration: 0.5 }}
       >
-        μDAI & Determinism
+        micros & Determinism
       </motion.h1>
 
       <motion.p
@@ -23,9 +23,13 @@ export default function Help() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2, duration: 0.5 }}
       >
-        DAIpay works in <strong>μDAI (micro-DAI)</strong>, where <code>1 DAI = 1,000,000 μDAI</code>.  
-        Using μDAI ensures every transaction is an exact integer — 
-        <span className="text-indigo-500 font-medium"> no rounding, no ambiguity.</span>
+        DAIpay works in <strong>micro</strong>, where{" "}
+        <code>1 Credit = 1,000,000 micros</code>. Using micros ensures every
+        transaction is an exact integer —
+        <span className="text-indigo-500 font-medium">
+          {" "}
+          no rounding, no ambiguity.
+        </span>
       </motion.p>
 
       <motion.div
@@ -36,9 +40,12 @@ export default function Help() {
       >
         <h2 className="text-2xl font-semibold text-gray-900 mb-3">Anchors</h2>
         <p className="text-lg leading-relaxed">
-          Anchors record cryptographic proofs of transactions to a public or 
-          federated ledger, guaranteeing integrity and reproducibility.  
-          They act as <span className="font-medium text-indigo-600">mathematical witnesses</span> 
+          Anchors record cryptographic proofs of transactions to a public or
+          federated ledger, guaranteeing integrity and reproducibility. They act
+          as{" "}
+          <span className="font-medium text-indigo-600">
+            mathematical witnesses
+          </span>
           for every deterministic payment.
         </p>
       </motion.div>
@@ -51,10 +58,13 @@ export default function Help() {
       >
         <h2 className="text-2xl font-semibold text-gray-900 mb-3">Escrows</h2>
         <p className="text-lg leading-relaxed">
-          Escrows temporarily lock funds until a condition is met — for example, 
-          confirming that goods or services were delivered.  
-          If the condition fails, the funds return to sender, ensuring 
-          <span className="text-indigo-500 font-medium"> deterministic fairness</span> 
+          Escrows temporarily lock funds until a condition is met — for example,
+          confirming that goods or services were delivered. If the condition
+          fails, the funds return to sender, ensuring
+          <span className="text-indigo-500 font-medium">
+            {" "}
+            deterministic fairness
+          </span>
           for both parties.
         </p>
       </motion.div>
@@ -66,7 +76,7 @@ export default function Help() {
         transition={{ delay: 0.5, duration: 0.5 }}
       >
         <p className="text-indigo-700 font-medium text-lg">
-          “Every μDAI counts. Determinism means precision — not probability.”
+          “Every micros counts. Determinism means precision — not probability.”
         </p>
       </motion.div>
     </motion.div>

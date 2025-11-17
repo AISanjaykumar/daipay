@@ -158,7 +158,7 @@ export default function Escrows() {
                 <input
                   type="number"
                   className="p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
-                  placeholder="Amount (μDAI)"
+                  placeholder="Amount (micros)"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                 />
@@ -205,7 +205,7 @@ export default function Escrows() {
                 <input
                   type="number"
                   className="p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 outline-none bg-white"
-                  placeholder="Release Amount (μDAI)"
+                  placeholder="Release Amount (micros)"
                   value={releaseAmount}
                   onChange={(e) => setReleaseAmount(e.target.value)}
                 />
@@ -301,7 +301,7 @@ export default function Escrows() {
                         <b>Payee:</b> {e.payee}
                       </div>
                       <div className="text-sm text-gray-700 mt-1">
-                        <b>Balance:</b> {e.balance_micros} μDAI
+                        <b>Balance:</b> {e.balance_micros} micros
                       </div>
                       <div className="text-sm text-gray-700 mt-1">
                         <b>Prefix:</b> {e.conditions?.ref_prefix}

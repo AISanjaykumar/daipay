@@ -103,10 +103,10 @@ const ActiveWallet = () => {
             className="flex flex-col items-center justify-center"
           >
             <p className="text-3xl font-bold text-green-600">
-              {(wallet.balance_micros / 1_000_000).toFixed(3)} DAI
+              {(wallet.balance_micros / 1_000_000).toFixed(3)} Credits
             </p>
             <p className="text-xs text-gray-600 mt-1">
-              ({wallet.balance_micros} μDAI)
+              ({wallet.balance_micros} micros)
             </p>
           </motion.div>
         </div>
@@ -162,9 +162,9 @@ const ActiveWallet = () => {
                     }`}
                   >
                     {tx.type === "credit" ? "+" : "-"}
-                    {(tx.amount_micros / 1_000_000).toFixed(3)} DAI
+                    {(tx.amount_micros / 1_000_000).toFixed(3)} Credits
                     <div className="text-xs text-gray-500">
-                      ({tx.amount_micros.toLocaleString()} μDAI)
+                      ({tx.amount_micros.toLocaleString()} micros)
                     </div>
                   </div>
                 </motion.div>
