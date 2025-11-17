@@ -206,88 +206,103 @@ export default function Payments() {
           💸 Send Deterministic Payment
         </h2>
 
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="flex flex-col bg-white p-4 shadow-md rounded-xl gap-4 w-full"
-        >
-          <input
-            className="p-3 border border-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-            placeholder="To Wallet ID"
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-          />
-          <input
-            type="password"
-            className="p-3 border border-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-            placeholder="Your Secret Key"
-            value={fromSecret}
-            onChange={(e) => setFromSecret(e.target.value)}
-          />
-          <input
-            type="number"
-            className="p-3 border border-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-            placeholder="Amount (μDAI)"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-          />
-          <div className="relative">
-            <input
-              className="w-full p-3 border border-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-              placeholder="Nonce"
-              value={nonce}
-              onChange={(e) => setNonce(e.target.value)}
-            />
-            <div className="absolute right-0 top-0 h-full flex items-center">
-              <button
-                className="flex items-center gap-2 absolute right-2 p-2 rounded-lg hover:bg-gray-100 transition"
-                onClick={() =>
-                  setNonce("n-" + Math.random().toString(36).slice(2))
-                }
-              >
-                <IoRefresh />
-                Refresh
-              </button>
-            </div>
+        {!user.isActiveWallet ? (
+          <div className="flex flex-col mx-auto items-center space-y-4 bg-white rounded-xl p-8 max-w-md w-full">
+            <h3 className="text-lg font-medium text-gray-800">
+              You don’t have an active wallet yet.
+            </h3>
+            <p className="text-gray-500 text-sm text-center">
+              Create your first wallet to start transactions.
+            </p>
+
+            <p className="text-gray-700 text-sm text-center">
+              Goto &gt;&gt; <span className="font-semibold">Wallets Tab</span>
+            </p>
           </div>
-          <input
-            className="p-3 border border-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-            placeholder="Ref (optional)"
-            value={ref}
-            onChange={(e) => setRef(e.target.value)}
-          />
-
-          <button
-            onClick={handleSubmitClick}
-            disabled={loading || sendingOtp}
-            className={`mt-3 p-3 w-full rounded-lg text-white font-medium transition ${
-              loading || sendingOtp
-                ? "bg-blue-300 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
-            }`}
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="flex flex-col bg-white p-4 shadow-md rounded-xl gap-4 w-full"
           >
-            {sendingOtp
-              ? "Sending OTP..."
-              : loading
-              ? "Processing..."
-              : "Submit Payment"}
-          </button>
+            <input
+              className="p-3 border border-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              placeholder="To Wallet ID"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+            />
+            <input
+              type="password"
+              className="p-3 border border-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              placeholder="Your Secret Key"
+              value={fromSecret}
+              onChange={(e) => setFromSecret(e.target.value)}
+            />
+            <input
+              type="number"
+              className="p-3 border border-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              placeholder="Amount (μDAI)"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+            <div className="relative">
+              <input
+                className="w-full p-3 border border-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                placeholder="Nonce"
+                value={nonce}
+                onChange={(e) => setNonce(e.target.value)}
+              />
+              <div className="absolute right-0 top-0 h-full flex items-center">
+                <button
+                  className="flex items-center gap-2 absolute right-2 p-2 rounded-lg hover:bg-gray-100 transition"
+                  onClick={() =>
+                    setNonce("n-" + Math.random().toString(36).slice(2))
+                  }
+                >
+                  <IoRefresh />
+                  Refresh
+                </button>
+              </div>
+            </div>
+            <input
+              className="p-3 border border-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              placeholder="Ref (optional)"
+              value={ref}
+              onChange={(e) => setRef(e.target.value)}
+            />
 
-          {status && (
-            <div
-              className={`mt-3 font-medium break-words whitespace-pre-wrap w-full ${
-                status.startsWith("✅")
-                  ? "text-green-600"
-                  : status.startsWith("❌")
-                  ? "text-red-600"
-                  : "text-gray-600"
+            <button
+              onClick={handleSubmitClick}
+              disabled={loading || sendingOtp}
+              className={`mt-3 p-3 w-full rounded-lg text-white font-medium transition ${
+                loading || sendingOtp
+                  ? "bg-blue-300 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
               }`}
             >
-              {status}
-            </div>
-          )}
-        </motion.div>
+              {sendingOtp
+                ? "Sending OTP..."
+                : loading
+                ? "Processing..."
+                : "Submit Payment"}
+            </button>
+
+            {status && (
+              <div
+                className={`mt-3 font-medium break-words whitespace-pre-wrap w-full ${
+                  status.startsWith("✅")
+                    ? "text-green-600"
+                    : status.startsWith("❌")
+                    ? "text-red-600"
+                    : "text-gray-600"
+                }`}
+              >
+                {status}
+              </div>
+            )}
+          </motion.div>
+        )}
       </motion.div>
 
       {/* OTP Modal */}

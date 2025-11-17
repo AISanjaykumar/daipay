@@ -17,21 +17,23 @@ import { useAuth } from "./context/AuthContext.jsx";
 
 import Footer from "./components/Footer.jsx";
 import Navbar from "./components/Navbar.jsx";
-import SecretPopup from "./components/SecretPopup.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 export default function App() {
   const { user } = useAuth();
   const [tab, setTab] = useState("payments");
-  const [showSecretPopup, setShowSecretPopup] = useState(false);
+  const [showWalletPopup, setShowWalletPopup] = useState(false);
 
   useEffect(() => {
-    if (user?.wallet?.secret_key) {
-      setShowSecretPopup(true);
+    if (!user?.isActiveWallet) {
+      setShowWalletPopup(true);
     }
   }, [user]);
 
-  const handleClosePopup = () => setShowSecretPopup(false);
+  useEffect(() => {
+    document.body.style.overflow = showWalletPopup ? "hidden" : "auto";
+    return () => (document.body.style.overflow = "auto");
+  }, [showWalletPopup]);
 
   const isDev = import.meta.env.MODE === "development";
 
@@ -45,7 +47,7 @@ export default function App() {
   ];
 
   const Dashboard = () => (
-    <div className="font-sans max-w-5xl mx-auto mt-10 px-5">
+    <div className="relative font-sans max-w-5xl mx-auto mt-10 px-5">
       {/* Header */}
       <header className="text-center mb-7">
         <h1 className="text-3xl font-bold text-gray-900">⚡ DAIPay™ MVP</h1>
@@ -81,8 +83,28 @@ export default function App() {
         {tab === "blocks" && <Blocks />}
       </main>
 
-      {showSecretPopup && (
-        <SecretPopup user={user} onClose={handleClosePopup} />
+      {showWalletPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl p-8 max-w-sm w-full shadow-xl text-center space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900">
+              You don’t have an active wallet yet.
+            </h3>
+
+            <p className="text-gray-600 text-sm">
+              Create your first wallet to start transactions.
+            </p>
+
+            <button
+              onClick={() => {
+                setTab("wallets");
+                setShowWalletPopup(false);
+              }}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition"
+            >
+              Create Wallet
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

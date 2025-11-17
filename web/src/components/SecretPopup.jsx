@@ -2,11 +2,12 @@ import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { BsCopy } from "react-icons/bs";
 import { LuFileDown } from "react-icons/lu";
+import { useAuth } from "../context/AuthContext";
 
-export default function SecretPopup({ user, onClose }) {
+export default function SecretPopup({ secretKey, onClose }) {
+  const { user } = useAuth();
   const [copied, setCopied] = useState(false);
 
-  const secretKey = user?.wallet?.secret_key || "";
   const maskedSecret =
     secretKey.length > 12
       ? `${secretKey.slice(0, 8)}****${secretKey.slice(-8)}`
@@ -20,12 +21,9 @@ export default function SecretPopup({ user, onClose }) {
   };
 
   const handleDownload = () => {
-    const blob = new Blob(
-      [
-        `Wallet Details:\n\nWallet ID: ${user?.wallet?.wallet_id}\nPublic Key: ${user?.wallet?.pubkey}\nSecret Key: ${secretKey}`,
-      ],
-      { type: "text/plain;charset=utf-8" }
-    );
+    const blob = new Blob([`Wallet Details:\n\nSecret Key: ${secretKey}`], {
+      type: "text/plain;charset=utf-8",
+    });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = "wallet_secret_key.txt";
@@ -45,7 +43,6 @@ export default function SecretPopup({ user, onClose }) {
         </p>
 
         <div className="bg-slate-50 border border-indigo-50 rounded-xl p-4 text-left space-y-3">
-      
           <div className="border-t border-dashed border-indigo-100 pt-3">
             <div className="text-xs text-slate-500 mb-1">
               Secret Key{" "}

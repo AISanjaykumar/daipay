@@ -29,16 +29,10 @@ r.post("/signup", async (req, res) => {
 
     const hash = await bcrypt.hash(password, 10);
 
-    const kp = genKeypair();
-    const wallet = await createWallet(kp.pubkey, `${name}'s Wallet`);
-    await credit(wallet.wallet_id, 1_000_000);
-
     const user = await User.create({
       name,
       email,
       password: hash,
-      wallet_id: wallet._id,
-      wallet_pubkey: kp.pubkey,
     });
 
     const { token, user: safeUser } = issueToken(user);
@@ -54,12 +48,6 @@ r.post("/signup", async (req, res) => {
       message: "Signup successful",
       user: {
         ...safeUser,
-        wallet: {
-          wallet_id: wallet.wallet_id,
-          pubkey: wallet.pubkey,
-          secret_key: kp.secret,
-          balance_micros: 1000000,
-        },
       },
     });
   } catch (err) {
@@ -71,16 +59,17 @@ r.post("/signup", async (req, res) => {
 r.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email }).populate(
-      "wallet_id",
-      "wallet_id pubkey balance_micros"
-    );
+
+    const user = await User.findOne({ email });
+
     if (!user) return res.status(400).json({ message: "User not found" });
 
-    const valid = await bcrypt.compare(password, user.password);
+    const valid = bcrypt.compare(password, user.password);
     if (!valid) return res.status(400).json({ message: "Invalid password" });
 
-    const { token, user: safeUser } = issueToken(user);
+    const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
 
     res.cookie("token", token, {
       httpOnly: true,
@@ -89,12 +78,27 @@ r.post("/login", async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    let wallet = safeUser.wallet_id;
-    delete safeUser.wallet_id;
-    safeUser.wallet = wallet;
+    let finalUser;
 
-    res.json({ user: safeUser });
+    if (user.isActiveWallet === true) {
+      const populatedUser = await User.findOne({ email })
+        .select("-password")
+        .populate("wallet_id", "wallet_id pubkey balance_micros");
+
+      finalUser = populatedUser.toObject();
+      finalUser.wallet = finalUser.wallet_id;
+      delete finalUser.wallet_id;
+    } else {
+      finalUser = user.toObject();
+      delete finalUser.password;
+    }
+
+    res.json({
+      message: "Login successful",
+      user: finalUser,
+    });
   } catch (err) {
+    console.error("Login error:", err);
     res.status(500).json({ message: err.message });
   }
 });
