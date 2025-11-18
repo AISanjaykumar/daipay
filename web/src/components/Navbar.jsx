@@ -48,6 +48,11 @@ export default function Navbar() {
         <Link to="/help" className="hover:text-cyan-400">
           Help
         </Link>
+        {import.meta.env.MODE === "development" && (
+          <Link to="/debug/deterministic" className="hover:text-cyan-400">
+            Debug Deterministic
+          </Link>
+        )}
       </div>
 
       {/* Mobile Menu */}

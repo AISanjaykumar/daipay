@@ -18,6 +18,7 @@ import { useAuth } from "./context/AuthContext.jsx";
 import Footer from "./components/Footer.jsx";
 import Navbar from "./components/Navbar.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import DeterministicDebugPage from "./pages/DebugDeterministicAI.jsx";
 
 export default function App() {
   const { user } = useAuth();
@@ -137,6 +138,7 @@ export default function App() {
           }
         />
         <Route path="/about" element={<About />} />
+        <Route path="/debug/deterministic" element={<DeterministicDebugPage />} />
         <Route path="/help" element={<Help />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
